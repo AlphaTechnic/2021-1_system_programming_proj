@@ -7,6 +7,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "utils.h"
+#include "shell_commands.h"
 
 #define MAX_INPUT_LEN 50
 #define MAXNUM_OF_TOKEN 5
@@ -33,9 +37,8 @@ typedef enum command {
     opcode_mnemonic_command,
     opcodelist_command,
 
-    // 10, 11 : input error
-    command_err,
-    none_command
+    // 10 : input error
+    wrong_input
 } command;
 
 

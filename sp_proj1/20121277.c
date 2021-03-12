@@ -1,10 +1,11 @@
 #include "20121277.h"
 
-int input_split_by_comma();
-
 void flush_input();
 
+int input_split_by_comma();
+
 command get_command();
+int execute_cmd(command cmd);
 
 int main() {
     command cmd;
@@ -18,15 +19,7 @@ int main() {
         if (!input_split_by_comma()) printf("command err!\n");
 
         cmd = get_command();
-
-        if (cmd == command_err) {
-            printf("command err!\n");
-            continue;
-        }
-        if (cmd == quit_command) {
-            break;
-        }
-        // 이 line에서 명령을 execute
+        execute_cmd(cmd);
         // 이 line에서 명령을 history에 저장
     }
     // 이 line에서 malloc 같은 것들 해제
@@ -42,26 +35,15 @@ void flush_input() {
     NUM_OF_TOKEN = 0;
 }
 
-// cur token의 첫번째 index부터 ~ nxt token의 첫번째 index까지의 차이를 구하는 함수
-int get_dx_to_nxt_token(char *start_ptr) {
-    int ind = 0;
-    if (start_ptr[ind] == '\0') return -1;
-    for (ind = 0;
-         start_ptr[ind] != ' ' && start_ptr[ind] != '\t' && start_ptr[ind] != '\0' && start_ptr[ind] != ',';
-         ind++);
-    if (start_ptr[ind] == '\0') return ind;
-
-    start_ptr[ind++] = '\0'; // token 끝에 NULL을 삽입
-    for (; start_ptr[ind] == ' ' || start_ptr[ind] == '\t'; ind++); // 다음 토큰의 첫 ind까지 접근
-    return ind;
-}
 
 int input_split_by_comma() {
     int cur_ind, dx;
 
     for (cur_ind = 0; input[cur_ind] == ' ' || input[cur_ind] == '\t'; cur_ind++); // s는 dump의 d를 가리키게 됨
     while (cur_ind < MAX_INPUT_LEN) {
+        // utils.h에서 정의한 함수 get_dx_to_nxt_token()
         dx = get_dx_to_nxt_token(input + cur_ind);
+
         // 종료 조건 : 1. next 토큰이 더이상 없다면, -> 정상 종료 2. TOKEN 개수가 5개 이상 -> error 3. TOKEN의 길이가 너무 길거나 -> error
         if (dx == -1) break;
         if (NUM_OF_TOKEN >= MAXNUM_OF_TOKEN - 1) return 0;
@@ -74,6 +56,68 @@ int input_split_by_comma() {
 }
 
 command get_command() {
-    // input_split[][]에서 첫번째 string 주어와서, 유효성검
+    char *cmd = input_split[0];
+    // shell command
+    if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKEN == 1) return help_command;
+    else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKEN == 1) return quit_command;
+    else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKEN == 1) return dir_command;
+    else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKEN == 1) return history_command;
+
+    // memory command
+    else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKEN >= 1 || NUM_OF_TOKEN <= 3))
+        return dump_command;
+    else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKEN == 3) return edit_command;
+    else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKEN == 4) return fill_command;
+
+    // opcode table command
+    else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKEN == 1) return reset_command;
+    else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKEN == 2) return opcode_mnemonic_command;
+    else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKEN == 1) return opcodelist_command;
+    return wrong_input;
+}
+
+int execute_cmd(command cmd){
+    switch(cmd){
+        // shell command
+        case help_command:
+            help();
+            break;
+        case quit_command:
+            exit(1);
+            break;
+            /*
+        case dir_command:
+            dir();
+            break;
+        case history_command:
+            history();
+            break;
+
+       // memory command
+        case dump_command:
+            dump();
+            break;
+        case edit_command:
+            edit();
+            break;
+        case fill_command:
+            fill();
+            break;
+
+        // opcode table command
+        case reset_command:
+            reset();
+            break;
+        case opcode_mnemonic_command:
+            opcode_mnemonic();
+            break;
+        case opcodelist_command:
+            opcodelist();
+            break;
+             */
+        case wrong_input:
+            printf("command err!\n");
+            break;
+    }
 }
 
