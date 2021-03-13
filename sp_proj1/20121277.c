@@ -1,12 +1,6 @@
 #include "20121277.h"
 
-void flush_input();
 
-int input_split_by_comma();
-
-command get_command();
-
-int execute_cmd(command cmd);
 
 int main() {
     command cmd;
@@ -16,12 +10,21 @@ int main() {
         flush_input();
         scanf("%[^\n]", input);
         getchar();
-        // 1. 긴 명령어를 입력하거나 2. token의 개수가 5개 이상이면 error 처리
-        if (!input_split_by_comma()) printf("command err!\n");
 
+        // 1. 긴 명령어를 입력하거나 2. token의 개수가 5개 이상이면 error 처리
+        if (!input_split_by_comma()) {
+            printf("command err!\n");
+            continue;
+        }
+        // 3. 예약되어있지 않은 명령어를 입력하면 error 처리
         cmd = get_command();
+        if (cmd == wrong_input) {
+            printf("command err!\n");
+            continue;
+        }
+        make_refined_input();
+        save_cmd(refined_input);
         execute_cmd(cmd);
-        // 이 line에서 명령을 history에 저장
     }
     // 이 line에서 malloc 같은 것들 해제
     return 0;
@@ -89,11 +92,10 @@ int execute_cmd(command cmd) {
         case dir_command:
             dir();
             break;
-            /*
         case history_command:
             history();
             break;
-
+            /*
        // memory command
         case dump_command:
             dump();
@@ -122,3 +124,16 @@ int execute_cmd(command cmd) {
     }
 }
 
+void make_refined_input() {
+    for (int i = 0; i < NUM_OF_TOKEN; i++) {
+        if (i == 0) {
+            strcpy(refined_input, input_split[i]);
+        } else if (i == 1) {
+            strcat(refined_input, " ");
+            strcat(refined_input, input_split[i]);
+        } else {
+            strcat(refined_input, ", ");
+            strcat(refined_input, input_split[i]);
+        }
+    }
+}

@@ -72,3 +72,27 @@ void dir(){
        }
     }
 }
+
+void save_cmd(char* refined_cmd){
+    // create new_node
+    CMD* new_node = malloc(sizeof(CMD));
+    strcpy(new_node->cmd, refined_cmd);
+    new_node->nxt = NULL;
+
+    // connect
+    if (HEAD == NULL){
+        HEAD = TAIL = new_node;
+    }
+    else{
+        TAIL->nxt = new_node;
+        TAIL = new_node;
+    }
+}
+
+void history(){
+    CMD* cur_node;
+    int cnt = 1;
+    for(cur_node=HEAD; cur_node != NULL; cur_node = cur_node->nxt){
+        printf("%4d %s\n", cnt++, cur_node->cmd);
+    }
+}

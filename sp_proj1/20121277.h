@@ -18,6 +18,7 @@
 
 char input[MAX_INPUT_LEN];
 char input_split[MAXNUM_OF_TOKEN][MAX_TOKEN_LEN];
+char refined_input[MAX_INPUT_LEN];
 int NUM_OF_TOKEN;
 
 typedef enum command {
@@ -41,5 +42,10 @@ typedef enum command {
     wrong_input
 } command;
 
+void flush_input();
+int input_split_by_comma();
+command get_command();
+int execute_cmd(command cmd);
+void make_refined_input();
 
 #endif //SP_PROJ1_20121277_H
