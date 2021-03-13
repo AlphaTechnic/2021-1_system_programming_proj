@@ -6,14 +6,14 @@
 #include "utils.h"
 
 int get_dx_to_nxt_token(char *start_ptr) {
-    int ind = 0;
-    if (start_ptr[ind] == '\0') return -1;
-    for (ind = 0;
-         start_ptr[ind] != ' ' && start_ptr[ind] != '\t' && start_ptr[ind] != '\0' && start_ptr[ind] != ',';
-         ind++);
-    if (start_ptr[ind] == '\0') return ind;
+    int dx = 0;
+    if (start_ptr[dx] == '\0') return -1;
+    for (dx = 0;
+         start_ptr[dx] != ' ' && start_ptr[dx] != '\t' && start_ptr[dx] != '\0' && start_ptr[dx] != ',';
+         dx++);
+    if (start_ptr[dx] == '\0') return dx;
 
-    start_ptr[ind++] = '\0'; // token 끝에 NULL을 삽입
-    for (; start_ptr[ind] == ' ' || start_ptr[ind] == '\t'; ind++); // 다음 토큰의 첫 ind까지 접근
-    return ind;
+    start_ptr[dx++] = '\0'; // token 끝에 NULL을 삽입
+    for (; start_ptr[dx] == ' ' || start_ptr[dx] == '\t'; dx++); // 다음 토큰의 첫 ind까지 접근
+    return dx;
 }

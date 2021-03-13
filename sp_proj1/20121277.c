@@ -5,6 +5,7 @@ void flush_input();
 int input_split_by_comma();
 
 command get_command();
+
 int execute_cmd(command cmd);
 
 int main() {
@@ -63,21 +64,21 @@ command get_command() {
     else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKEN == 1) return dir_command;
     else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKEN == 1) return history_command;
 
-    // memory command
+        // memory command
     else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKEN >= 1 || NUM_OF_TOKEN <= 3))
         return dump_command;
     else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKEN == 3) return edit_command;
     else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKEN == 4) return fill_command;
 
-    // opcode table command
+        // opcode table command
     else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKEN == 1) return reset_command;
     else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKEN == 2) return opcode_mnemonic_command;
     else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKEN == 1) return opcodelist_command;
     return wrong_input;
 }
 
-int execute_cmd(command cmd){
-    switch(cmd){
+int execute_cmd(command cmd) {
+    switch (cmd) {
         // shell command
         case help_command:
             help();
@@ -85,10 +86,10 @@ int execute_cmd(command cmd){
         case quit_command:
             exit(1);
             break;
-            /*
         case dir_command:
             dir();
             break;
+            /*
         case history_command:
             history();
             break;
