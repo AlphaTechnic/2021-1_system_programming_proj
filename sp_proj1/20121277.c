@@ -23,7 +23,7 @@ int main() {
             continue;
         }
         make_refined_input();
-        save_cmd(refined_input);
+        save_instructions(refined_input);
         execute_cmd(cmd);
     }
     // 이 line에서 malloc 같은 것들 해제

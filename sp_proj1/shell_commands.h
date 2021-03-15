@@ -20,7 +20,7 @@ CMD* TAIL;
 
 void help();
 void dir();
-void save_cmd(char* refined_cmd);
+void save_instructions(char* refined_cmd);
 void history();
 
 #endif //SP_PROJ1_SHELL_COMMANDS_H

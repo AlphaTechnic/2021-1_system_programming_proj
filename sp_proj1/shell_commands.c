@@ -73,7 +73,7 @@ void dir(){
     }
 }
 
-void save_cmd(char* refined_cmd){
+void save_instructions(char* refined_cmd){
     // create new_node
     CMD* new_node = malloc(sizeof(CMD));
     strcpy(new_node->cmd, refined_cmd);
