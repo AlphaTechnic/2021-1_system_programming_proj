@@ -27,10 +27,6 @@ void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
             printf("command err! too many args!\n");
             return;
     }
-    if (STATE == ADDR_ERR) {
-        printf("addr err!\n");
-        return;
-    }
     if (STATE == RANGE_ERR) {
         printf("range err!\n");
         return;
@@ -112,3 +108,37 @@ int edit(char *addr_hexstr, char *val_hexstr) {
     return OK;
 }
 
+int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr){
+    int start_dec, end_dec, val_dec;
+
+    if (start_hexstr[strlen(start_hexstr)-1] != ',') {
+        printf("comma err! (use ',' between start address and end address)\n");
+        return COMMA_ERR;
+    }
+    if (end_hexstr[strlen(end_hexstr)-1]!= ',') {
+        printf("comma err! (use ',' between start address and end address)\n");
+        return COMMA_ERR;
+    }
+    start_hexstr[strlen(start_hexstr)-1] = '\0'; end_hexstr[strlen(end_hexstr)-1]= '\0';
+    start_dec = hexstr_to_dec(start_hexstr); end_dec = hexstr_to_dec(end_hexstr); val_dec = hexstr_to_dec(val_hexstr);
+
+    if (start_dec < 0 || start_dec >= MEM_SIZE) {
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+    if (end_dec < 0 || end_dec >= MEM_SIZE) {
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+    if (start_dec > end_dec){
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+    if (val_dec < 0 || val_dec >= ONE_BYTE_SIZE){
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+
+    for (int i = start_dec; i<= end_dec; i++) MEMORY[i] = val_dec;
+    return OK;
+}

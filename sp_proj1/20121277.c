@@ -110,11 +110,10 @@ void execute_cmd(command cmd) {
         case edit_command:
             edit(input_split[1], input_split[2]);
             break;
-            /*
         case fill_command:
-            fill();
+            fill(input_split[1], input_split[2], input_split[3]);
             break;
-
+            /*
         // opcode table command
         case reset_command:
             reset();

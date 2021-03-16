@@ -13,9 +13,8 @@
 #define MEM_SIZE 1048576 // 16*65536
 #define ONE_BYTE_SIZE 256 // FF(hex) == 255(dec)
 #define OK 1
-#define ADDR_ERR -1
-#define COMMA_ERR -2
-#define RANGE_ERR -3
+#define COMMA_ERR -1
+#define RANGE_ERR -2
 
 char MEMORY[MEM_SIZE];
 int LAST_ADDR;
@@ -24,5 +23,6 @@ int set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, 
 void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
 void print_memory(int start, int end);
 int edit(char* addr_hexstr, char* val_hexstr);
+int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr);
 
 #endif //SP_PROJ1_MEMORY_COMMANDS_H
