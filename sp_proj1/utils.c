@@ -9,11 +9,26 @@ int get_dx_to_nxt_token(char *start_ptr) {
     int dx = 0;
     if (start_ptr[dx] == '\0') return -1;
     for (dx = 0;
-         start_ptr[dx] != ' ' && start_ptr[dx] != '\t' && start_ptr[dx] != '\0' && start_ptr[dx] != ',';
+         start_ptr[dx] != ' ' && start_ptr[dx] != '\t' && start_ptr[dx] != '\0';
          dx++);
     if (start_ptr[dx] == '\0') return dx;
 
     start_ptr[dx++] = '\0'; // token 끝에 NULL을 삽입
     for (; start_ptr[dx] == ' ' || start_ptr[dx] == '\t'; dx++); // 다음 토큰의 첫 ind까지 접근
     return dx;
+}
+
+int hex_to_dec(char *hex) {
+    int cur, res = 0;
+    int scale = 1;
+    for (int i = strlen(hex) - 1; i >= 0; i--) {
+        if (hex[i] >= '0' && hex[i] <= '9') cur = hex[i] - '0';
+        else if (hex[i] >= 'A' && hex[i] <= 'F') cur = hex[i] - 'A' + 10;
+        else if (hex[i] >= 'a' && hex[i] <= 'f') cur = hex[i] - 'a' + 10;
+        else return -1; // contain wrong hex symbol
+
+        res += cur * scale;
+        scale *= 16;
+    }
+    return res;
 }
