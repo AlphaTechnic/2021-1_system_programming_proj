@@ -42,7 +42,7 @@ typedef enum command {
     opcodelist_command,
 
     // 10 : input error
-    wrong_input
+    wrong_cmd
 } command;
 
 void init();

@@ -18,7 +18,7 @@ int get_dx_to_nxt_token(char *start_ptr) {
     return dx;
 }
 
-int hex_to_dec(char *hex) {
+int hexstr_to_dec(char *hex) {
     int cur, res = 0;
     int scale = 1;
     for (int i = strlen(hex) - 1; i >= 0; i--) {

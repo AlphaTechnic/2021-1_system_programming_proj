@@ -8,6 +8,6 @@
 #include <string.h>
 
 int get_dx_to_nxt_token(char *start_ptr);
-int hex_to_dec(char*hex);
+int hexstr_to_dec(char*hex);
 
 #endif //SP_PROJ1_UTILS_H

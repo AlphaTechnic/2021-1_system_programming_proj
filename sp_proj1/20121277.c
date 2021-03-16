@@ -17,10 +17,10 @@ int main() {
             printf("command err!\n");
             continue;
         }
-        // 3. 예약되어있지 않은 명령어를 입력하면 error 처리
+        // 3. 예약되어있지 않은 명령어를 입력하거
         cmd = get_command();
-        if (cmd == wrong_input) {
-            printf("command err!\n");
+        if (cmd == wrong_cmd) {
+            printf("err : wrong cmd or wrong number of parameters!\n");
             continue;
         }
         make_refined_input();
@@ -85,7 +85,7 @@ command get_command() {
     else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKENS == 1) return reset_command;
     else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKENS == 2) return opcode_mnemonic_command;
     else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
-    return wrong_input;
+    return wrong_cmd;
 }
 
 void execute_cmd(command cmd) {
@@ -107,10 +107,10 @@ void execute_cmd(command cmd) {
         case dump_command:
             dump(NUM_OF_TOKENS, input_split[1], input_split[2]);
             break;
-            /*
         case edit_command:
-            edit();
+            edit(input_split[1], input_split[2]);
             break;
+            /*
         case fill_command:
             fill();
             break;
@@ -126,7 +126,7 @@ void execute_cmd(command cmd) {
             opcodelist();
             break;
              */
-        case wrong_input:
+        case wrong_cmd:
             printf("command err!\n");
             break;
     }
