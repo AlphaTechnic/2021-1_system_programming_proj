@@ -142,3 +142,9 @@ int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr){
     for (int i = start_dec; i<= end_dec; i++) MEMORY[i] = val_dec;
     return OK;
 }
+
+void reset(){
+    for (int i=0; i<MEM_SIZE; i++){
+        MEMORY[i] = 0;
+    }
+}

@@ -24,5 +24,6 @@ void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
 void print_memory(int start, int end);
 int edit(char* addr_hexstr, char* val_hexstr);
 int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr);
+void reset();
 
 #endif //SP_PROJ1_MEMORY_COMMANDS_H
