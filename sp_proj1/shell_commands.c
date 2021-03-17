@@ -96,3 +96,13 @@ void history(){
         printf("%4d %s\n", cnt++, cur_node->cmd);
     }
 }
+
+void free_log_of_instructions(){
+    CMD* tmp_node;
+    while(HEAD != NULL){
+        tmp_node = HEAD->nxt;
+        free(HEAD);
+        HEAD = tmp_node;
+    }
+    TAIL = NULL;
+}

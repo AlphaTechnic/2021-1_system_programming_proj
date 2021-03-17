@@ -59,3 +59,16 @@ void opcodelist() {
         printf("\n");
     }
 }
+
+void free_hash_table(){
+    OPCODE_MNEMONIC_MAP * cur_node;
+    for (int i=0; i<MAX_HASHTABLE_SIZE; i++){
+        cur_node = HASH_TABLE[i];
+        while(cur_node!= NULL){
+            OPCODE_MNEMONIC_MAP *tmp_node;
+            tmp_node = cur_node->nxt;
+            free(cur_node);
+            cur_node = tmp_node;
+        }
+    }
+}

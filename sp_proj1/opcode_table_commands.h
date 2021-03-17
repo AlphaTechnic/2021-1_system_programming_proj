@@ -27,6 +27,7 @@ int hash_func(char *mnemonic);
 void get_opcode(char *mnemonic);
 void init_hash_table(char *filename);
 void opcodelist();
+void free_hash_table();
 
 
 #endif //SP_PROJ1_OPCODE_TABLE_COMMANDS_H

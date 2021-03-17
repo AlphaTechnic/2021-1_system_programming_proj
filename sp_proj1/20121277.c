@@ -96,6 +96,8 @@ void execute_cmd(command cmd) {
             help();
             break;
         case quit_command:
+            free_log_of_instructions();
+            free_hash_table();
             exit(1);
         case dir_command:
             dir();

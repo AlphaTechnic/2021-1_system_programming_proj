@@ -22,5 +22,5 @@ void help();
 void dir();
 void save_instructions(char* refined_cmd);
 void history();
-
+void free_log_of_instructions();
 #endif //SP_PROJ1_SHELL_COMMANDS_H
