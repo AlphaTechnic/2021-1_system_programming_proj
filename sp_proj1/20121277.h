@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "shell_commands.h"
 #include "memory_commands.h"
+#include "opcode_table_commands.h"
 
 #define MAX_INPUT_LEN 100
 #define MAXNUM_OF_TOKEN 5

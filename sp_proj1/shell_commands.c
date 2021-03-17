@@ -13,7 +13,7 @@ void help() {
     printf("e[dit] address, value\n");
     printf("f[ill] start, end, value\n");
     printf("reset\n");
-    printf("opcode mnemonic\n");
+    printf("opcode OPCODE_MNEMONIC_MAP\n");
     printf("opcodelist\n");
 }
 

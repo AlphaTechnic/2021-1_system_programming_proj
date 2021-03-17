@@ -36,6 +36,7 @@ void init(){
     TAIL = NULL;
     NUM_OF_TOKENS = 0;
     LAST_ADDR = -1;
+    init_hash_table("opcode.txt");
 }
 
 // input[]과 input_split[], NUM_OF_OPERAND를 초기 상태로 만듦
@@ -90,7 +91,7 @@ command get_command() {
 
 void execute_cmd(command cmd) {
     switch (cmd) {
-        // shell command
+        // shell commands
         case help_command:
             help();
             break;
@@ -103,7 +104,7 @@ void execute_cmd(command cmd) {
             history();
             break;
 
-       // memory command
+       // memory commands
         case dump_command:
             dump(NUM_OF_TOKENS, input_split[1], input_split[2]);
             break;
@@ -117,16 +118,14 @@ void execute_cmd(command cmd) {
             reset();
             break;
 
-            // opcode table command
-            /*
+        // opcode table commands
         case opcode_mnemonic_command:
-            opcode_mnemonic();
+            get_opcode(input_split[1]);
             break;
         case opcodelist_command:
             opcodelist();
             break;
-             */
-        case wrong_cmd:
+        default:// wrong_cmd
             printf("command err!\n");
             break;
     }
