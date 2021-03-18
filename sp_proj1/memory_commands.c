@@ -70,13 +70,15 @@ void print_memory(int start, int end) {
         printf("%05X  ", r * 16);
         for (int c = 0; c < MAX_COL_SIZE; c++) {
             int cur = r * MAX_COL_SIZE + c;
-            if (cur < start || cur > end) printf("   ");
-            else printf("%X%X ", (MEMORY[cur] & 0XF0) >> 4, MEMORY[cur] & 0XF);
+            if (cur >= start && cur <= end) printf("%X%X ", (MEMORY[cur] & 0XF0) >> 4, MEMORY[cur] & 0XF);
+            else printf("   ");
         }
         printf(";  ");
         for (int c = 0; c < MAX_COL_SIZE; c++) {
-            char ASCII = MEMORY[r * MAX_COL_SIZE + c];
-            if (ASCII >= 32 && ASCII <= 126) printf("%c", ASCII);
+            int cur = r * MAX_COL_SIZE + c;
+            char ASCII = MEMORY[cur];
+
+            if (cur >= start && cur <= end && ASCII >= 32 && ASCII <= 126) printf("%c", ASCII);
             else printf(".");
         }
         printf("\n");

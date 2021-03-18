@@ -47,7 +47,10 @@ void opcodelist() {
     for (int i = 0; i < MAX_HASHTABLE_SIZE; i++) {
         printf("%d : ", i);
         cur_node = HASH_TABLE[i];
-        if (cur_node == NULL) break;
+        if (cur_node == NULL) {
+            printf("\n");
+            continue;
+        }
         printf("[%s,%s]", cur_node->mnemonic, cur_node->opcode);
         cur_node = cur_node->nxt;
 

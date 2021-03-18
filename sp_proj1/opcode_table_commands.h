@@ -12,7 +12,7 @@
 #define MAX_OPCODE_SIZE 3
 #define MAX_INSTRUCTION_SIZE 10
 #define MAX_FORMAT_SIZE 10
-#define MAX_HASHTABLE_SIZE 10
+#define MAX_HASHTABLE_SIZE 20
 
 typedef struct OPCODE_MNEMONIC_MAP {
     char opcode[MAX_OPCODE_SIZE];
