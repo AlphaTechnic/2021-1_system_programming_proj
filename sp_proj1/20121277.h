@@ -20,9 +20,9 @@
 #define SUCCESS 1
 #define FAIL 0
 
-char input[MAX_INPUT_LEN];
-char input_split[MAXNUM_OF_TOKEN][MAX_TOKEN_LEN];
-char refined_input[MAX_INPUT_LEN];
+char INPUT[MAX_INPUT_LEN];
+char INPUT_SPLIT[MAXNUM_OF_TOKEN][MAX_TOKEN_LEN];
+char REFINED_INPUT[MAX_INPUT_LEN];
 int NUM_OF_TOKENS;
 
 typedef enum command {
@@ -42,7 +42,7 @@ typedef enum command {
     opcode_mnemonic_command,
     opcodelist_command,
 
-    // 10 : input error
+    // 10 : INPUT error
     wrong_cmd
 } command;
 
@@ -50,7 +50,7 @@ void init();
 void refresh_input();
 int input_split_by_comma();
 command get_command();
-void execute_cmd(command cmd);
+int execute_cmd(command cmd);
 void make_refined_input();
 
 #endif //SP_PROJ1_20121277_H

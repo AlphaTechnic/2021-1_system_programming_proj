@@ -5,7 +5,7 @@
 #include "memory_commands.h"
 
 
-void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
+int dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
     int S_dec, E_dec;
     int num_of_args = num_of_tokens - 1;
     int STATE = OK;
@@ -21,15 +21,18 @@ void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
             break;
         case 2:
             STATE = set_actual_start_and_end(num_of_args, l_or_NULL, r_or_NULL, &S_dec, &E_dec);
-            if (STATE == COMMA_ERR) printf("comma err! (use ',' between start address and end address)\n");
+            if (STATE == COMMA_ERR) {
+                printf("comma err! (use ',' between start address and end address)\n");
+                return STATE;
+            }
             break;
         default:
             printf("command err! too many args!\n");
-            return;
+            return STATE;
     }
     if (STATE == RANGE_ERR) {
         printf("range err!\n");
-        return;
+        return STATE;
     }
     print_memory(S_dec, E_dec);
     LAST_ADDR = E_dec;

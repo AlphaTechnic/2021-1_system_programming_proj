@@ -24,7 +24,7 @@ OPCODE_MNEMONIC_MAP* HASH_TABLE[MAX_HASHTABLE_SIZE];
 
 
 int hash_func(char *mnemonic);
-void get_opcode(char *mnemonic);
+int get_opcode(char *mnemonic);
 void init_hash_table(char *filename);
 void opcodelist();
 void free_hash_table();

@@ -20,7 +20,7 @@ char MEMORY[MEM_SIZE];
 int LAST_ADDR;
 
 int set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, int *start_dec, int *end_dec);
-void dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
+int dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
 void print_memory(int start, int end);
 int edit(char* addr_hexstr, char* val_hexstr);
 int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr);

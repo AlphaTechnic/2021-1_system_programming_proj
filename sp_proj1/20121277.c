@@ -9,7 +9,7 @@ int main() {
         printf("sicsim> ");
 
         refresh_input();
-        scanf("%[^\n]", input);
+        scanf("%[^\n]", INPUT);
         getchar();
 
         // 1. 긴 명령어를 입력하거나 2. token의 개수가 5개 이상이면 error 처리
@@ -23,9 +23,17 @@ int main() {
             printf("err : wrong cmd or wrong number of parameters!\n");
             continue;
         }
+        else if (cmd == history_command){
+            make_refined_input();
+            save_instructions(REFINED_INPUT);
+            execute_cmd(cmd);
+            continue;
+        }
+        else if (execute_cmd(cmd) == FAIL) continue;
+
+        // store instructions
         make_refined_input();
-        save_instructions(refined_input);
-        execute_cmd(cmd);
+        save_instructions(REFINED_INPUT);
     }
     // 이 line에서 malloc 같은 것들 해제
     return 0;
@@ -39,11 +47,11 @@ void init(){
     init_hash_table("opcode.txt");
 }
 
-// input[]과 input_split[], NUM_OF_OPERAND를 초기 상태로 만듦
+// INPUT[]과 INPUT_SPLIT[], NUM_OF_OPERAND를 초기 상태로 만듦
 void refresh_input() {
-    input[0] = '\0';
+    INPUT[0] = '\0';
     for (int i = 0; i < MAXNUM_OF_TOKEN; i++) {
-        strcpy(input_split[i], "\0");
+        strcpy(INPUT_SPLIT[i], "\0");
     }
     NUM_OF_TOKENS = 0;
 }
@@ -52,24 +60,24 @@ void refresh_input() {
 int input_split_by_comma() {
     int cur_ind, dx;
 
-    for (cur_ind = 0; input[cur_ind] == ' ' || input[cur_ind] == '\t'; cur_ind++); // s는 dump의 d를 가리키게 됨
+    for (cur_ind = 0; INPUT[cur_ind] == ' ' || INPUT[cur_ind] == '\t'; cur_ind++); // s는 dump의 d를 가리키게 됨
     while (cur_ind < MAX_INPUT_LEN) {
         // utils.h에서 정의한 함수 get_dx_to_nxt_token()
-        dx = get_dx_to_nxt_token(input + cur_ind);
+        dx = get_dx_to_nxt_token(INPUT + cur_ind);
 
         // 종료 조건 : 1. next 토큰이 더이상 없다면, -> 정상 종료 2. TOKEN 개수가 5개 이상 -> error 3. TOKEN의 길이가 너무 길거나 -> error
         if (dx == -1) break;
         if (NUM_OF_TOKENS >= MAXNUM_OF_TOKEN - 1) return FAIL;
-        if (strlen(input + cur_ind) > MAX_TOKEN_LEN) return FAIL;
+        if (strlen(INPUT + cur_ind) > MAX_TOKEN_LEN) return FAIL;
 
-        strcpy(input_split[NUM_OF_TOKENS++], input + cur_ind);
+        strcpy(INPUT_SPLIT[NUM_OF_TOKENS++], INPUT + cur_ind);
         cur_ind += dx;
     }
     return SUCCESS;
 }
 
 command get_command() {
-    char *cmd = input_split[0];
+    char *cmd = INPUT_SPLIT[0];
     // shell command
     if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKENS == 1) return help_command;
     else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return quit_command;
@@ -89,7 +97,8 @@ command get_command() {
     return wrong_cmd;
 }
 
-void execute_cmd(command cmd) {
+int execute_cmd(command cmd) {
+    int RESULT = SUCCESS;
     switch (cmd) {
         // shell commands
         case help_command:
@@ -98,7 +107,7 @@ void execute_cmd(command cmd) {
         case quit_command:
             free_log_of_instructions();
             free_hash_table();
-            exit(1);
+            break;
         case dir_command:
             dir();
             break;
@@ -108,13 +117,13 @@ void execute_cmd(command cmd) {
 
        // memory commands
         case dump_command:
-            dump(NUM_OF_TOKENS, input_split[1], input_split[2]);
+            RESULT = dump(NUM_OF_TOKENS, INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
         case edit_command:
-            edit(input_split[1], input_split[2]);
+            RESULT = edit(INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
         case fill_command:
-            fill(input_split[1], input_split[2], input_split[3]);
+            RESULT = fill(INPUT_SPLIT[1], INPUT_SPLIT[2], INPUT_SPLIT[3]);
             break;
         case reset_command:
             reset();
@@ -122,7 +131,7 @@ void execute_cmd(command cmd) {
 
         // opcode table commands
         case opcode_mnemonic_command:
-            get_opcode(input_split[1]);
+            RESULT = get_opcode(INPUT_SPLIT[1]);
             break;
         case opcodelist_command:
             opcodelist();
@@ -131,15 +140,17 @@ void execute_cmd(command cmd) {
             printf("command err!\n");
             break;
     }
+    if (RESULT <= 0) RESULT = FAIL;
+    return RESULT;
 }
 
 void make_refined_input() {
     for (int i = 0; i < NUM_OF_TOKENS; i++) {
         if (i == 0) {
-            strcpy(refined_input, input_split[i]);
+            strcpy(REFINED_INPUT, INPUT_SPLIT[i]);
         } else {
-            strcat(refined_input, " ");
-            strcat(refined_input, input_split[i]);
+            strcat(REFINED_INPUT, " ");
+            strcat(REFINED_INPUT, INPUT_SPLIT[i]);
         }
     }
 }

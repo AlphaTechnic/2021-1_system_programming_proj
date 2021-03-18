@@ -26,20 +26,23 @@ void init_hash_table(char *filename) {
 
 int hash_func(char *mnemonic) {
     int total = 0;
-    for (int i = 0; i < strlen(mnemonic); i++) total += mnemonic[i];
+    for (int i = 0; i < (int)strlen(mnemonic); i++) total += mnemonic[i];
     return total % MAX_HASHTABLE_SIZE;
 }
 
-void get_opcode(char *mnemonic) {
+int get_opcode(char *mnemonic) {
+    int OK = 1;
+    int ERR = 0;
     OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {
             printf("opcode is %s\n", cur_node->opcode);
-            return;
+            return OK;
         }
         cur_node = cur_node->nxt;
     }
     printf("err: no opcode for the mnemonic %s\n", mnemonic);
+    return ERR;
 }
 
 void opcodelist() {
