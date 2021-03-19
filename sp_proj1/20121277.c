@@ -156,11 +156,18 @@ int execute_cmd(command cmd) {
 
 void make_refined_input() {
     for (int i = 0; i < NUM_OF_TOKENS; i++) {
-        if (i == 0) {
-            strcpy(REFINED_INPUT, INPUT_SPLIT[i]);
-        } else {
-            strcat(REFINED_INPUT, " ");
-            strcat(REFINED_INPUT, INPUT_SPLIT[i]);
+        switch(i){
+            case 0:
+                strcpy(REFINED_INPUT, INPUT_SPLIT[i]);
+                break;
+            case 1:
+                strcat(REFINED_INPUT, " ");
+                strcat(REFINED_INPUT, INPUT_SPLIT[i]);
+                break;
+            default:
+                strcat(REFINED_INPUT, ", ");
+                strcat(REFINED_INPUT, INPUT_SPLIT[i]);
+                break;
         }
     }
 }
