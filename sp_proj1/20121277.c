@@ -1,7 +1,6 @@
 #include "20121277.h"
 
 
-
 int main() {
     command cmd;
     init();
@@ -22,14 +21,12 @@ int main() {
         if (cmd == wrong_cmd) {
             printf("err : wrong cmd or wrong number of parameters!\n");
             continue;
-        }
-        else if (cmd == history_command){
+        } else if (cmd == history_command) {
             make_refined_input();
             save_instructions(REFINED_INPUT);
             execute_cmd(cmd);
             continue;
-        }
-        else if (execute_cmd(cmd) == FAIL) continue;
+        } else if (execute_cmd(cmd) == FAIL) continue;
 
         // store instructions
         make_refined_input();
@@ -39,7 +36,7 @@ int main() {
     return 0;
 }
 
-void init(){
+void init() {
     HEAD = NULL;
     TAIL = NULL;
     NUM_OF_TOKENS = 0;
@@ -70,11 +67,24 @@ int input_split_by_comma() {
         if (NUM_OF_TOKENS >= MAXNUM_OF_TOKEN - 1) return FAIL;
         if (strlen(INPUT + cur_ind) > MAX_TOKEN_LEN) return FAIL;
 
-        strcpy(INPUT_SPLIT[NUM_OF_TOKENS++], INPUT + cur_ind);
+        if (IS_COMMA == YES_COMMA){
+            if (strcmp(INPUT + cur_ind, "") == 0) { // "[white space]," 인 경우
+                strcat(INPUT_SPLIT[--NUM_OF_TOKENS], ",");
+                NUM_OF_TOKENS++;
+            }
+            else{ // "[operand]," 인 경우
+                strcpy(INPUT_SPLIT[NUM_OF_TOKENS], INPUT + cur_ind);
+                strcat(INPUT_SPLIT[NUM_OF_TOKENS++], ",");
+            }
+        }
+        else{
+            strcpy(INPUT_SPLIT[NUM_OF_TOKENS++], INPUT + cur_ind);
+        }
         cur_ind += dx;
     }
     return SUCCESS;
 }
+
 
 command get_command() {
     char *cmd = INPUT_SPLIT[0];
@@ -115,7 +125,7 @@ int execute_cmd(command cmd) {
             history();
             break;
 
-       // memory commands
+            // memory commands
         case dump_command:
             RESULT = dump(NUM_OF_TOKENS, INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
@@ -129,7 +139,7 @@ int execute_cmd(command cmd) {
             reset();
             break;
 
-        // opcode table commands
+            // opcode table commands
         case opcode_mnemonic_command:
             RESULT = get_opcode(INPUT_SPLIT[1]);
             break;

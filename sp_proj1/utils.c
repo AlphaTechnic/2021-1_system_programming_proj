@@ -9,9 +9,20 @@ int get_dx_to_nxt_token(char *start_ptr) {
     int dx = 0;
     if (start_ptr[dx] == '\0') return -1;
     for (dx = 0;
-         start_ptr[dx] != ' ' && start_ptr[dx] != '\t' && start_ptr[dx] != '\0';
+         start_ptr[dx] != ' ' && start_ptr[dx] != '\t' && start_ptr[dx] != '\0' && start_ptr[dx] != ',';
          dx++);
-    if (start_ptr[dx] == '\0') return dx;
+
+    if (start_ptr[dx] == '\0') {
+        IS_COMMA = NO_COMMA;
+        return dx;
+    }
+
+    if (start_ptr[dx] == ',')  {
+        IS_COMMA = YES_COMMA;
+    }
+    else { // start_ptr[dx] == ' ' or start_ptr[dx] == '\t' or start_ptr[dx] == '\0'
+        IS_COMMA = NO_COMMA;
+    }
 
     start_ptr[dx++] = '\0'; // token 끝에 NULL을 삽입
     for (; start_ptr[dx] == ' ' || start_ptr[dx] == '\t'; dx++); // 다음 토큰의 첫 ind까지 접근
