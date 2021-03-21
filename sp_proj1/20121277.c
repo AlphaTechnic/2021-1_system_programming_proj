@@ -26,13 +26,18 @@ int main() {
             save_instructions(REFINED_INPUT);
             execute_cmd(cmd);
             continue;
-        } else if (execute_cmd(cmd) == FAIL) continue;
+        } else if (cmd == quit_command) {
+            if (HEAD != TAIL) free_log_of_instructions();
+            free_hash_table();
+            break;
+        }
+
+        if (execute_cmd(cmd) == FAIL) continue;
 
         // store instructions
         make_refined_input();
         save_instructions(REFINED_INPUT);
     }
-    // 이 line에서 malloc 같은 것들 해제
     return 0;
 }
 
@@ -67,17 +72,15 @@ int input_split_by_comma() {
         if (NUM_OF_TOKENS >= MAXNUM_OF_TOKEN - 1) return FAIL;
         if (strlen(INPUT + cur_ind) > MAX_TOKEN_LEN) return FAIL;
 
-        if (IS_COMMA == YES_COMMA){
+        if (IS_COMMA == YES_COMMA) {
             if (strcmp(INPUT + cur_ind, "") == 0) { // "[white space]," 인 경우
                 strcat(INPUT_SPLIT[--NUM_OF_TOKENS], ",");
                 NUM_OF_TOKENS++;
-            }
-            else{ // "[operand]," 인 경우
+            } else { // "[operand]," 인 경우
                 strcpy(INPUT_SPLIT[NUM_OF_TOKENS], INPUT + cur_ind);
                 strcat(INPUT_SPLIT[NUM_OF_TOKENS++], ",");
             }
-        }
-        else{
+        } else {
             strcpy(INPUT_SPLIT[NUM_OF_TOKENS++], INPUT + cur_ind);
         }
         cur_ind += dx;
@@ -115,8 +118,6 @@ int execute_cmd(command cmd) {
             help();
             break;
         case quit_command:
-            free_log_of_instructions();
-            free_hash_table();
             break;
         case dir_command:
             dir();
@@ -156,7 +157,7 @@ int execute_cmd(command cmd) {
 
 void make_refined_input() {
     for (int i = 0; i < NUM_OF_TOKENS; i++) {
-        switch(i){
+        switch (i) {
             case 0:
                 strcpy(REFINED_INPUT, INPUT_SPLIT[i]);
                 break;
