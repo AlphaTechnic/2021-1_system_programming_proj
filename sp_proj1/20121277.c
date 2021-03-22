@@ -1,6 +1,6 @@
 #include "20121277.h"
 
-
+/* 프로그램 시작 */
 int main() {
     command cmd;
     init();
@@ -27,7 +27,7 @@ int main() {
             execute_cmd(cmd);
             continue;
         } else if (cmd == quit_command) {
-            if (HEAD != TAIL) free_log_of_instructions();
+            free_log_of_instructions();
             free_hash_table();
             break;
         }
@@ -41,6 +41,11 @@ int main() {
     return 0;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : init*/
+/*목적 : 명령어들의 history를 저장하기 위한 linked list를 초기화하며, memory의 마지막 주소를 초기화한다.*/
+/*리턴값 : 없음*/
+/*------------------------------------------------------------------------------------*/
 void init() {
     HEAD = NULL;
     TAIL = NULL;
@@ -49,7 +54,11 @@ void init() {
     init_hash_table("opcode.txt");
 }
 
-// INPUT[]과 INPUT_SPLIT[], NUM_OF_OPERAND를 초기 상태로 만듦
+/*------------------------------------------------------------------------------------*/
+/*함수 : refresh_input*/
+/*목적 : 사용자로부터 다시 입력을 받을 수 있는 상태가 되도록, INPUT char 배열, INPUT_SPLIT[][] char 배열을 초기화*/
+/*리턴값 : 없음*/
+/*------------------------------------------------------------------------------------*/
 void refresh_input() {
     INPUT[0] = '\0';
     for (int i = 0; i < MAXNUM_OF_TOKEN; i++) {
@@ -58,7 +67,11 @@ void refresh_input() {
     NUM_OF_TOKENS = 0;
 }
 
-
+/*------------------------------------------------------------------------------------*/
+/*함수 : input_split_by_comma*/
+/*목적 : 사용자로부터 입력 받은 명령어들을 ‘,’ 기호를 기준하여, parsing*/
+/*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경*/
+/*------------------------------------------------------------------------------------*/
 int input_split_by_comma() {
     int cur_ind, dx;
 
@@ -88,7 +101,11 @@ int input_split_by_comma() {
     return SUCCESS;
 }
 
-
+/*------------------------------------------------------------------------------------*/
+/*함수 : get_command*/
+/*목적 : 사용자로부터 command를 입력받는다.*/
+/*리턴값 : *_command - 성공인 경우 해당 command, wrong_command - 잘못된 명령어인 경우*/
+/*------------------------------------------------------------------------------------*/
 command get_command() {
     char *cmd = INPUT_SPLIT[0];
     // shell command
@@ -110,6 +127,11 @@ command get_command() {
     return wrong_cmd;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : execute_cmd*/
+/*목적 : 사용자로부터 입력받은 command를 수행한다.*/
+/*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경우*/
+/*------------------------------------------------------------------------------------*/
 int execute_cmd(command cmd) {
     int RESULT = SUCCESS;
     switch (cmd) {
@@ -155,6 +177,11 @@ int execute_cmd(command cmd) {
     return RESULT;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : make_refined_input*/
+/*목적 : 사용자로부터 입력 받은 입력어를 정제하여 INPUT_SPLIT[][] char 배열에 저장한다. */
+/*리턴값 : 없음*/
+/*------------------------------------------------------------------------------------*/
 void make_refined_input() {
     for (int i = 0; i < NUM_OF_TOKENS; i++) {
         switch (i) {
