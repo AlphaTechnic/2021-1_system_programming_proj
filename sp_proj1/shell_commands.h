@@ -31,6 +31,6 @@ void save_instructions(char* refined_cmd);
 void history();
 void free_log_of_instructions();
 
-int type(char* filename);
+OK_or_ERR type(char* filename);
 
 #endif //SP_PROJ1_SHELL_COMMANDS_H

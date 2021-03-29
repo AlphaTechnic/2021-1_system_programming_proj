@@ -141,10 +141,10 @@ void free_log_of_instructions() {
 /*목적 : filename에 해당하는 파일을 현재 디렉터리에서 읽어서 화면에 출력한다.*/
 /*리턴값 : OK - 성공, FILE_ERR - 파일 읽기 에러*/
 /*------------------------------------------------------------------------------------*/
-int type(char *filename) {
+OK_or_ERR type(char *filename) {
     DIR *dir = opendir(filename);
-    if (!dir) return FILE_ERR;
     FILE *fp = fopen(filename, "r");
+    if (!dir) return FILE_ERR;
     if (!fp) return FILE_ERR;
 
     char ch;
@@ -154,6 +154,7 @@ int type(char *filename) {
         printf("%c", ch);
     }
     printf("\n");
+
     fclose(fp);
     return OK;
 }

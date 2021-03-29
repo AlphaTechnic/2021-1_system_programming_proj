@@ -19,8 +19,11 @@
 #define MAX_INPUT_LEN 100
 #define MAXNUM_OF_TOKEN 5
 #define MAX_TOKEN_LEN 10
-#define SUCCESS 1
-#define FAIL 0
+
+typedef enum SUCCESS_or_FAIL {
+    FAIL = 0,
+    SUCCESS
+}SUCCESS_or_FAIL;
 
 /* 전역 변수 */
 char INPUT[MAX_INPUT_LEN];
@@ -30,25 +33,25 @@ int NUM_OF_TOKENS;
 
 /* 사용자 정의 data type */
 typedef enum command {
-    // 0 ~ 3 : shell commands
+    // 0 ~ 4 : shell commands
     help_command = 0,
     dir_command,
     quit_command,
     history_command,
+    type_command,
 
-    // 4 ~ 7 : memory commands
+    // 5 ~ 8 : memory commands
     dump_command,
     edit_command,
     fill_command,
     reset_command,
 
-    // 8, 9 : opcode table commands
+    // 9, 10 : opcode table commands
     opcode_mnemonic_command,
     opcodelist_command,
 
-    // 10, 11, 12 : assemble commands
+    // 11, 12 : assemble commands
     assemble_command,
-    type_command,
     symbol_command,
 
     // 13 : INPUT error
@@ -58,9 +61,9 @@ typedef enum command {
 /* 함수 원형 */
 void init();
 void refresh_input();
-int input_split_by_comma();
+SUCCESS_or_FAIL input_split_by_comma();
 command get_command();
-int execute_cmd(command cmd);
+SUCCESS_or_FAIL execute_cmd(command cmd);
 void make_refined_input();
 
 #endif //SP_PROJ1_20121277_H

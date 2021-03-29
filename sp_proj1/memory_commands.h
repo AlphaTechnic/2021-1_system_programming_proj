@@ -20,11 +20,11 @@ char MEMORY[MEM_SIZE];
 int LAST_ADDR;
 
 /* 함수 원형 */
-int set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, int *start_dec, int *end_dec);
-int dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
+OK_or_ERR set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, int *start_dec, int *end_dec);
+OK_or_ERR dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL);
 void print_memory(int start, int end);
-int edit(char *addr_hexstr, char *val_hexstr);
-int fill(char *start_hexstr, char *end_hexstr, char *val_hexstr);
+OK_or_ERR edit(char *addr_hexstr, char *val_hexstr);
+OK_or_ERR fill(char *start_hexstr, char *end_hexstr, char *val_hexstr);
 void reset();
 
 #endif //SP_PROJ1_MEMORY_COMMANDS_H

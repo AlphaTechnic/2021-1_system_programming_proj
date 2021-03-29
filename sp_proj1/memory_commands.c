@@ -9,7 +9,7 @@
 /*목적 : 메모리가 가지고 있는 값을 사용자에게 보여준다.*/
 /*리턴값 : OK - 성공인 경우, COMMA_ERR - ','에 문제가 있는 에러인 경우, RANGE_ERR - 인자에 문제가 있는 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-int dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
+OK_or_ERR dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
     int S_dec, E_dec;
     int num_of_args = num_of_tokens - 1;
     int STATE = OK;
@@ -48,7 +48,7 @@ int dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
 /*목적 : 사용자가 입력한 start address와 end address에 대한 조정이 필요한 경우 이를 수행한다.*/
 /*리턴값 : OK - 성공인 경우, COMMA_ERR - ','에 문제가 있는 에러인 경우, RANGE_ERR - 인자에 문제가 있는 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-int set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, int *start_dec, int *end_dec) {
+OK_or_ERR set_actual_start_and_end(int num_of_args, char *l_or_NULL, char *r_or_NULL, int *start_dec, int *end_dec) {
     // 1. arg가 0개인 case0    2. arg가 1개인 case1   3. arg가 2개인 case2
     switch (num_of_args) {
         case 0: // dump
@@ -107,7 +107,7 @@ void print_memory(int start, int end) {
 /*목적 : 지정한 메모리 주소가 갖는 값을 변경한다.*/
 /*리턴값 : OK - 성공인 경우, COMMA_ERR - ','에 문제가 있는 에러인 경우, RANGE_ERR - 인자에 문제가 있는 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-int edit(char *addr_hexstr, char *val_hexstr) {
+OK_or_ERR edit(char *addr_hexstr, char *val_hexstr) {
     int addr_dec, val_dec;
     // hexstr to dec
     if (addr_hexstr[strlen(addr_hexstr) - 1] != ',') {
@@ -136,7 +136,7 @@ int edit(char *addr_hexstr, char *val_hexstr) {
 /*목적 : 사용자가 지정한 메모리 주소 범위에 대하여 사용자가 원하는 값을 대입하는 함수이다.*/
 /*리턴값 : OK - 성공인 경우, COMMA_ERR - ','에 문제가 있는 에러인 경우, RANGE_ERR - 인자에 문제가 있는 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-int fill(char* start_hexstr, char* end_hexstr, char* val_hexstr){
+OK_or_ERR fill(char* start_hexstr, char* end_hexstr, char* val_hexstr){
     int start_dec, end_dec, val_dec;
 
     if (start_hexstr[strlen(start_hexstr)-1] != ',') {
