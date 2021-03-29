@@ -30,23 +30,28 @@ int NUM_OF_TOKENS;
 
 /* 사용자 정의 data type */
 typedef enum command {
-    // 0 ~ 3 : shell command
+    // 0 ~ 3 : shell commands
     help_command = 0,
     dir_command,
     quit_command,
     history_command,
 
-    // 4 ~ 7 : memory command
+    // 4 ~ 7 : memory commands
     dump_command,
     edit_command,
     fill_command,
     reset_command,
 
-    // 8, 9 : opcode table command
+    // 8, 9 : opcode table commands
     opcode_mnemonic_command,
     opcodelist_command,
 
-    // 10 : INPUT error
+    // 10, 11, 12 : assemble commands
+    assemble_command,
+    type_command,
+    symbol_command,
+
+    // 13 : INPUT error
     wrong_cmd
 } command;
 

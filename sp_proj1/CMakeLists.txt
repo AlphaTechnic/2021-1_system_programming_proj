@@ -3,4 +3,4 @@ project(sp_proj1)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(sp_proj1 20121277.c utils.c shell_commands.c memory_commands.c opcode_table_commands.c)
+add_executable(sp_proj1 20121277.c utils.c shell_commands.c memory_commands.c opcode_table_commands.c assembler_commands.h)

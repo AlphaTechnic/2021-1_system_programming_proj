@@ -108,22 +108,28 @@ int input_split_by_comma() {
 /*------------------------------------------------------------------------------------*/
 command get_command() {
     char *cmd = INPUT_SPLIT[0];
-    // shell command
+    // shell commands
     if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKENS == 1) return help_command;
     else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return quit_command;
     else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKENS == 1) return dir_command;
     else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKENS == 1) return history_command;
 
-        // memory command
+        // memory commands
     else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 3))
         return dump_command;
     else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKENS == 3) return edit_command;
     else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKENS == 4) return fill_command;
 
-        // opcode table command
+        // opcode table commands
     else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKENS == 1) return reset_command;
     else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKENS == 2) return opcode_mnemonic_command;
     else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
+
+        // assemble commands
+    else if (strcmp(cmd, "assemble") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
+    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
+    else if (strcmp(cmd, "symbol") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
+
     return wrong_cmd;
 }
 
@@ -168,6 +174,14 @@ int execute_cmd(command cmd) {
             break;
         case opcodelist_command:
             opcodelist();
+            break;
+
+            // assemble commands
+        case assemble_command:
+            break;
+        case type_command:
+            type(INPUT_SPLIT[1]);
+        case symbol_command:
             break;
         default:// wrong_cmd
             printf("command err!\n");

@@ -14,9 +14,6 @@
 /* 정의되는 상수 */
 #define MEM_SIZE 1048576 // 16*65536
 #define ONE_BYTE_SIZE 256 // FF(hex) == 255(dec)
-#define OK 1
-#define COMMA_ERR -1
-#define RANGE_ERR -2
 
 /* 전역 변수 */
 char MEMORY[MEM_SIZE];

@@ -20,6 +20,9 @@ void help() {
     printf("reset\n");
     printf("opcode mnemonic\n");
     printf("opcodelist\n");
+    printf("assemble filename\n");
+    printf("type filename\n");
+    printf("symbol\n");
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -121,7 +124,7 @@ void history() {
 /*------------------------------------------------------------------------------------*/
 void free_log_of_instructions() {
     CMD *tmp_node;
-    if (HEAD == TAIL){
+    if (HEAD == TAIL) {
         return;
     }
     while (HEAD != NULL) {
@@ -130,4 +133,27 @@ void free_log_of_instructions() {
         HEAD = tmp_node;
     }
     TAIL = NULL;
+}
+
+
+/*------------------------------------------------------------------------------------*/
+/*함수 : type*/
+/*목적 : filename에 해당하는 파일을 현재 디렉터리에서 읽어서 화면에 출력한다.*/
+/*리턴값 : OK - 성공, FILE_ERR - 파일 읽기 에러*/
+/*------------------------------------------------------------------------------------*/
+int type(char *filename) {
+    DIR *dir = opendir(filename);
+    if (!dir) return FILE_ERR;
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return FILE_ERR;
+
+    char ch;
+    while (1) {
+        ch = fgetc(fp);
+        if (ch == EOF) break;
+        printf("%c", ch);
+    }
+    printf("\n");
+    fclose(fp);
+    return OK;
 }
