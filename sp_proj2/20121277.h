@@ -14,6 +14,7 @@
 #include "shell_commands.h"
 #include "memory_commands.h"
 #include "opcode_table_commands.h"
+#include "assembler_commands.h"
 
 /* 정의되는 상수 */
 #define MAX_INPUT_LEN 100
@@ -32,38 +33,38 @@ char REFINED_INPUT[MAX_INPUT_LEN];
 int NUM_OF_TOKENS;
 
 /* 사용자 정의 data type */
-typedef enum command {
+typedef enum COMMAND {
     // 0 ~ 4 : shell commands
-    help_command = 0,
-    dir_command,
-    quit_command,
-    history_command,
-    type_command,
+    HELP_CMD = 0,
+    DIR_CMD,
+    QUIT_CMD,
+    HISTORY_CMD,
+    TYPE_CMD,
 
     // 5 ~ 8 : memory commands
-    dump_command,
-    edit_command,
-    fill_command,
-    reset_command,
+    DUMP_CMD,
+    EDIT_CMD,
+    FILL_CMD,
+    RESET_CMD,
 
     // 9, 10 : opcode table commands
-    opcode_mnemonic_command,
-    opcodelist_command,
+    OPCODE_MNEMONIC_CMD,
+    OPCODELIST_CMD,
 
     // 11, 12 : assemble commands
-    assemble_command,
-    symbol_command,
+    ASSEMBLE_CMD,
+    SYMBOL_CMD,
 
     // 13 : INPUT error
-    wrong_cmd
-} command;
+    WRONG_CMD
+} COMMAND;
 
 /* 함수 원형 */
 void init();
 void refresh_input();
 SUCCESS_or_FAIL input_split_by_comma();
-command get_command();
-SUCCESS_or_FAIL execute_cmd(command cmd);
+COMMAND get_command();
+SUCCESS_or_FAIL execute_cmd(COMMAND cmd);
 void make_refined_input();
 
 #endif //SP_PROJ1_20121277_H

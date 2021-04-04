@@ -9,7 +9,8 @@
 #include <string.h>
 
 typedef enum{
-    FILE_ERR = -3,
+    ASSEMBLY_CODE_ERR = -4,
+    FILE_ERR,
     RANGE_ERR,
     COMMA_ERR,
     OK = 1

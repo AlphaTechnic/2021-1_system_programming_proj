@@ -2,7 +2,7 @@
 
 /* 프로그램 시작 */
 int main() {
-    command cmd;
+    COMMAND cmd;
     init();
     while (1) {
         printf("sicsim> ");
@@ -13,20 +13,20 @@ int main() {
 
         // 1. 긴 명령어를 입력하거나 2. token의 개수가 5개 이상이면 error 처리
         if (!input_split_by_comma()) {
-            printf("command err!\n");
+            printf("COMMAND err!\n");
             continue;
         }
         // 3. 예약되어있지 않은 명령어를 입력하거
         cmd = get_command();
-        if (cmd == wrong_cmd) {
+        if (cmd == WRONG_CMD) {
             printf("err : wrong cmd or wrong number of parameters!\n");
             continue;
-        } else if (cmd == history_command) {
+        } else if (cmd == HISTORY_CMD) {
             make_refined_input();
             save_instructions(REFINED_INPUT);
             execute_cmd(cmd);
             continue;
-        } else if (cmd == quit_command) {
+        } else if (cmd == QUIT_CMD) {
             free_log_of_instructions();
             free_hash_table();
             break;
@@ -104,33 +104,33 @@ SUCCESS_or_FAIL input_split_by_comma() {
 /*------------------------------------------------------------------------------------*/
 /*함수 : get_command*/
 /*목적 : 사용자로부터 command를 입력받는다.*/
-/*리턴값 : *_command - 성공인 경우 해당 command, wrong_command - 잘못된 명령어인 경우*/
+/*리턴값 : *_command - 성공인 경우 해당 COMMAND, wrong_command - 잘못된 명령어인 경우*/
 /*------------------------------------------------------------------------------------*/
-command get_command() {
+COMMAND get_command() {
     char *cmd = INPUT_SPLIT[0];
     // shell commands
-    if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKENS == 1) return help_command;
-    else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return quit_command;
-    else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKENS == 1) return dir_command;
-    else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKENS == 1) return history_command;
-    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
+    if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKENS == 1) return HELP_CMD;
+    else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return QUIT_CMD;
+    else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKENS == 1) return DIR_CMD;
+    else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKENS == 1) return HISTORY_CMD;
+    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return OPCODELIST_CMD;
 
         // memory commands
     else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 3))
-        return dump_command;
-    else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKENS == 3) return edit_command;
-    else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKENS == 4) return fill_command;
+        return DUMP_CMD;
+    else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKENS == 3) return EDIT_CMD;
+    else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKENS == 4) return FILL_CMD;
 
         // opcode table commands
-    else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKENS == 1) return reset_command;
-    else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKENS == 2) return opcode_mnemonic_command;
-    else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
+    else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKENS == 1) return RESET_CMD;
+    else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKENS == 2) return OPCODE_MNEMONIC_CMD;
+    else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKENS == 1) return OPCODELIST_CMD;
 
         // assembler commands
-    else if (strcmp(cmd, "assemble") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
-    else if (strcmp(cmd, "symbol") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
+    else if (strcmp(cmd, "assemble") == 0 && NUM_OF_TOKENS == 2) return ASSEMBLE_CMD;
+    else if (strcmp(cmd, "symbol") == 0 && NUM_OF_TOKENS == 1) return SYMBOL_CMD;
 
-    return wrong_cmd;
+    return WRONG_CMD;
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -138,53 +138,54 @@ command get_command() {
 /*목적 : 사용자로부터 입력받은 command를 수행한다.*/
 /*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경우*/
 /*------------------------------------------------------------------------------------*/
-SUCCESS_or_FAIL execute_cmd(command cmd) {
+SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
     int RESULT = SUCCESS;
     switch (cmd) {
         // shell commands
-        case help_command:
+        case HELP_CMD:
             help();
             break;
-        case quit_command:
+        case QUIT_CMD:
             break;
-        case dir_command:
+        case DIR_CMD:
             dir();
             break;
-        case history_command:
+        case HISTORY_CMD:
             history();
             break;
-        case type_command:
+        case TYPE_CMD:
             type(INPUT_SPLIT[1]);
 
             // memory commands
-        case dump_command:
+        case DUMP_CMD:
             RESULT = dump(NUM_OF_TOKENS, INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
-        case edit_command:
+        case EDIT_CMD:
             RESULT = edit(INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
-        case fill_command:
+        case FILL_CMD:
             RESULT = fill(INPUT_SPLIT[1], INPUT_SPLIT[2], INPUT_SPLIT[3]);
             break;
-        case reset_command:
+        case RESET_CMD:
             reset();
             break;
 
             // opcode table commands
-        case opcode_mnemonic_command:
+        case OPCODE_MNEMONIC_CMD:
             RESULT = get_opcode(INPUT_SPLIT[1]);
             break;
-        case opcodelist_command:
+        case OPCODELIST_CMD:
             opcodelist();
             break;
 
             // assembler commands
-        case assemble_command:
+        case ASSEMBLE_CMD:
+            assemble(INPUT_SPLIT[1]);
             break;
-        case symbol_command:
+        case SYMBOL_CMD:
             break;
-        default:// wrong_cmd
-            printf("command err!\n");
+        default:// WRONG_CMD
+            printf("COMMAND err!\n");
             break;
     }
     if (RESULT <= 0) RESULT = FAIL;

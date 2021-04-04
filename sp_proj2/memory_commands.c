@@ -31,7 +31,7 @@ OK_or_ERR dump(int num_of_tokens, char *l_or_NULL, char *r_or_NULL) {
             }
             break;
         default:
-            printf("command err! too many args!\n");
+            printf("COMMAND err! too many args!\n");
             return STATE;
     }
     if (STATE == RANGE_ERR) {
