@@ -8,13 +8,6 @@
 /* 포함되는 파일 */
 #include <string.h>
 
-typedef enum{
-    FILE_ERR = -3,
-    RANGE_ERR,
-    COMMA_ERR,
-    OK = 1
-} OK_or_ERR;
-
 /* 사용자 정의 data type */
 typedef enum {
     NO_COMMA = 0,

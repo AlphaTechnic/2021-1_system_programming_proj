@@ -46,8 +46,8 @@ int hash_func(char *mnemonic) {
 /*리턴값 : OK - 성공인 경우, ERR - 에러인 경*/
 /*------------------------------------------------------------------------------------*/
 int get_opcode(char *mnemonic) {
-    const int OK = 1;
-    const int ERR = 0;
+    int OK = 1;
+    int ERR = 0;
     OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {

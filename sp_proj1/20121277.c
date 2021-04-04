@@ -72,7 +72,7 @@ void refresh_input() {
 /*목적 : 사용자로부터 입력 받은 명령어들을 ‘,’ 기호를 기준하여, parsing*/
 /*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경*/
 /*------------------------------------------------------------------------------------*/
-SUCCESS_or_FAIL input_split_by_comma() {
+int input_split_by_comma() {
     int cur_ind, dx;
 
     for (cur_ind = 0; INPUT[cur_ind] == ' ' || INPUT[cur_ind] == '\t'; cur_ind++); // s는 dump의 d를 가리키게 됨
@@ -108,28 +108,22 @@ SUCCESS_or_FAIL input_split_by_comma() {
 /*------------------------------------------------------------------------------------*/
 command get_command() {
     char *cmd = INPUT_SPLIT[0];
-    // shell commands
+    // shell command
     if ((strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0) && NUM_OF_TOKENS == 1) return help_command;
     else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return quit_command;
     else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKENS == 1) return dir_command;
     else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKENS == 1) return history_command;
-    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
 
-        // memory commands
+        // memory command
     else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 3))
         return dump_command;
     else if ((strcmp(cmd, "e") == 0 || strcmp(cmd, "edit") == 0) && NUM_OF_TOKENS == 3) return edit_command;
     else if ((strcmp(cmd, "f") == 0 || strcmp(cmd, "fill") == 0) && NUM_OF_TOKENS == 4) return fill_command;
 
-        // opcode table commands
+        // opcode table command
     else if (strcmp(cmd, "reset") == 0 && NUM_OF_TOKENS == 1) return reset_command;
     else if (strcmp(cmd, "opcode") == 0 && NUM_OF_TOKENS == 2) return opcode_mnemonic_command;
     else if (strcmp(cmd, "opcodelist") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
-
-        // assembler commands
-    else if (strcmp(cmd, "assemble") == 0 && NUM_OF_TOKENS == 2) return opcodelist_command;
-    else if (strcmp(cmd, "symbol") == 0 && NUM_OF_TOKENS == 1) return opcodelist_command;
-
     return wrong_cmd;
 }
 
@@ -138,7 +132,7 @@ command get_command() {
 /*목적 : 사용자로부터 입력받은 command를 수행한다.*/
 /*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경우*/
 /*------------------------------------------------------------------------------------*/
-SUCCESS_or_FAIL execute_cmd(command cmd) {
+int execute_cmd(command cmd) {
     int RESULT = SUCCESS;
     switch (cmd) {
         // shell commands
@@ -153,8 +147,6 @@ SUCCESS_or_FAIL execute_cmd(command cmd) {
         case history_command:
             history();
             break;
-        case type_command:
-            type(INPUT_SPLIT[1]);
 
             // memory commands
         case dump_command:
@@ -176,12 +168,6 @@ SUCCESS_or_FAIL execute_cmd(command cmd) {
             break;
         case opcodelist_command:
             opcodelist();
-            break;
-
-            // assembler commands
-        case assemble_command:
-            break;
-        case symbol_command:
             break;
         default:// wrong_cmd
             printf("command err!\n");

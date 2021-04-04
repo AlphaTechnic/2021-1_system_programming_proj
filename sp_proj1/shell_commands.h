@@ -12,8 +12,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include "utils.h"
-
 /* 사용자 정의 data type */
 typedef struct CMD {
     char cmd[100];
@@ -30,7 +28,4 @@ void dir();
 void save_instructions(char* refined_cmd);
 void history();
 void free_log_of_instructions();
-
-OK_or_ERR type(char* filename);
-
 #endif //SP_PROJ1_SHELL_COMMANDS_H
