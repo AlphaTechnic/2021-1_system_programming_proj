@@ -142,6 +142,11 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *LENGTH) {
     return OK;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : */
+/*목적 : */
+/*리턴값 : */
+/*------------------------------------------------------------------------------------*/
 INSTRUCTION line_split(char *line, char *label, char *mnemonic, char *op1, char *op2) {
     char buf[MAX_LINE_SIZE];
     char *ptr;
@@ -184,7 +189,11 @@ INSTRUCTION line_split(char *line, char *label, char *mnemonic, char *op1, char 
     return type;
 }
 
-
+/*------------------------------------------------------------------------------------*/
+/*함수 : */
+/*목적 : */
+/*리턴값 : */
+/*------------------------------------------------------------------------------------*/
 INSTRUCTION get_instruction(char *mnemonic) {
     INSTRUCTION type;
     if (strcmp(mnemonic, "START") == 0) type = START;
@@ -234,6 +243,11 @@ void push_to_symtab(char *symbol, int addr) {
     new_node = NULL;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : */
+/*목적 : */
+/*리턴값 : */
+/*------------------------------------------------------------------------------------*/
 OPCODE_MNEMONIC_MAP *get_opcode2(char *mnemonic) {
     OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic)];
     while (cur_node != NULL) {
@@ -245,6 +259,11 @@ OPCODE_MNEMONIC_MAP *get_opcode2(char *mnemonic) {
     return NULL;
 }
 
+/*------------------------------------------------------------------------------------*/
+/*함수 : */
+/*목적 : */
+/*리턴값 : */
+/*------------------------------------------------------------------------------------*/
 int find_byte_len(char* constant){
     int len;
     char* ptr;
