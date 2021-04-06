@@ -125,9 +125,11 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *LENGTH) {
                 if (strcmp(opcode_mnemonic_map_node->format, "3/4") == 0) {
                     if (MNEMONIC[0] == '+') dl = 4;
                     else dl = 3;
-                } else if (strcmp(opcode_mnemonic_map_node->format, "1") == 0) dl = 1;
+                }
+                else if (strcmp(opcode_mnemonic_map_node->format, "1") == 0) dl = 1;
                 else if (strcmp(opcode_mnemonic_map_node->format, "2") == 0) dl = 2;
-            } else if (type == _BASE) dl = 0;
+            }
+            else if (type == _BASE) dl = 0;
             else if (type == _WORD) dl = 3;
             else if (type == _RESW) dl = 3 * atoi(OP1);
             else if (type == _RESB) dl = atoi(OP1);
@@ -138,7 +140,8 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *LENGTH) {
                 // 여기에 itm 파일 지우는 코드 들어가야함.
             }
             LOCCTR += dl;
-        } else
+        }
+        else
             fprintf(fp_itm, "%04X %-10s %s\n", LOCCTR, LABEL,
                     MNEMONIC);//printf("%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
 
@@ -254,7 +257,8 @@ void push_to_symtab(char *symbol, int addr) {
                 //printf("12345\n");
                 node_to_insert->nxt = cur_node;
                 //printf("45678\n");
-            } else {
+            }
+            else {
                 //printf("2222\n");
                 //printf("2222\n");
                 pre_node->nxt = node_to_insert;
@@ -293,10 +297,11 @@ int find_byte_len(char *constant) {
     char *ptr;
     if (constant[0] == 'C') {
         ptr = strtok(constant, "C`'");
-        len = (int)strlen(ptr);
-    } else if (constant[0] == 'X') {
+        len = (int) strlen(ptr);
+    }
+    else if (constant[0] == 'X') {
         ptr = strtok(constant, "X`'");
-        len = (int)strlen(ptr) / 2;
+        len = (int) strlen(ptr) / 2;
     }
     return len;
 }
@@ -331,9 +336,13 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     INSTRUCTION type;
     int LOCCTR = 0, LINE_NUM = 1, STARTING_ADDR = 0;
     char PROGRAM_NAME[NAME_LEN];
-    char cur_T_record[ONELINE_T_RECORD_SIZE];
+    char ONELINE_T_RECORD[ONELINE_T_RECORD_LINE_SIZE];
     char obj_code[OBJ_CODE_LEN];
     OPCODE_MNEMONIC_MAP *opcode_mnemonic_map_node;
+    OK_or_ERR state;
+    SYM_node *symbol_node;
+    int T_RECORD_ACCUMULATED_BYTE = 0;
+    int var_flag = 0, new_line_flag = 0, comment_flag = 0;
 
     // init M_records
     M_RECORD_NUM = 0;
@@ -365,7 +374,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
 
     printf("-obj-H%-6s%06X%06X\n", PROGRAM_NAME, STARTING_ADDR, PROGRAM_SIZE);
     //fprintf(fp_obj, "H%-6s%06X%06X\n", PROGRAM_NAME, STARTING_ADDR, PROGRAM_SIZE);
-    sprintf(cur_T_record, "T%06XLL", STARTING_ADDR);
+    sprintf(ONELINE_T_RECORD, "T%06XLL", STARTING_ADDR);
 
     while (type != _END) {
         if (feof(fp_itm)) {
@@ -378,14 +387,117 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         strcpy(obj_code, '\0');
         if (type != _COMMENT) {
             if (MNEMONIC[0] == '+') strcpy(tmp, MNEMONIC + 1);
-            else
-                strcpy(tmp, MNEMONIC);
+            else strcpy(tmp, MNEMONIC);
+
+            if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode2(tmp)) != NULL) {
+                state = make_obj_code_by_a_line(obj_code, LOCCTR, MNEMONIC, OP1, OP2);
+                if (state != OK) {
+                    printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
+                    return ASSEMBLY_CODE_ERR;
+                    // 파일 닫고 .lst .obj 삭제해야함
+                }
+            }
+            else if (type == _BYTE) {
+                char tmp_op1[OPERAND_LEN];
+                if (OP1[0] == 'C') {
+                    strcpy(tmp_op1, OP1);
+                    char tmpbuf[3];
+                    char *ptr = strtok(tmp_op1, " C'`");
+                    for (int i = 0; i < (int) strlen(ptr); i++) {
+                        sprintf(tmpbuf, "%02X", (int) *(ptr + i));
+                        strcat(obj_code, tmpbuf);
+                    }
+                }
+                else if (OP1[0] == 'X') {
+                    strcpy(tmp_op1, OP1);
+                    char *ptr = strtok(tmp_op1, " X'`");
+                    strcpy(obj_code, ptr);
+                }
+            }
+            else if (type == _WORD) sprintf(obj_code, "%06X", atoi(OP1));
+            else if (type == _BASE) {
+                symbol_node = find_symbol(OP1);
+                {
+                    if (!symbol_node) {
+                        printf("Symbol ");
+                        printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
+                        return ASSEMBLY_CODE_ERR;
+                        // 파일 닫고 .lst .obj 삭제해야함
+                    }
+                    B = symbol_node->address;
+                    LOCCTR = -1;
+                }
+            }
+            else if (type == _RESW || type == _RESB) {
+                while (type == _RESW || type == _RESB) {
+                    //fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+                    printf("%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+                    fgets(line, LINE_LEN, fp_itm);
+                    line[strlen(line) - 1] = '\0';
+                    type = line_split2(line, &LOCCTR, LABEL, MNEMONIC, OP1, OP2);
+                }
+                var_flag = 1;
+                new_line_flag = 1;
+            }
+            // 현재 obj_code가 정해진 line 길이를 벗어난다면,
+            if (T_RECORD_ACCUMULATED_BYTE + strlen(obj_code) / 2 > ONELINE_T_RECORD_BYTE_SIZE) new_line_flag = 1;
+            if (new_line_flag) {
+                char tmp[3];
+                sprintf(tmp, "%02X", T_RECORD_ACCUMULATED_BYTE);
+                ONELINE_T_RECORD[7] = tmp[0];
+                ONELINE_T_RECORD[8] = tmp[1];
+                //fprintf(fp_obj, "%s\n", ONELINE_T_RECORD);
+                printf("%s\n", ONELINE_T_RECORD);
+                T_RECORD_ACCUMULATED_BYTE = 0;
+                new_line_flag = 0;
+            }
+            T_RECORD_ACCUMULATED_BYTE += strlen(obj_code) / 2;
+            strcat(ONELINE_T_RECORD, obj_code);
+
+            if (var_flag){
+                var_flag = 0;
+                continue;
+            }
+        }
+        else{ // type == _COMMENT
+            comment_flag = 1;
+            strcpy(obj_code, "\0");
         }
 
-        if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode2(tmp)) != NULL) {
-            // object_code를 생성해야함.
+        if (comment_flag){
+            fprintf(fp_lst, "%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
+            //printf("%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
+            comment_flag = 0;
         }
+        else{
+            fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
+            //printf("%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
+        }
+        fgets(line, LINE_LEN, fp_itm);
+        line[strlen(line) - 1] = '\0';
+        type = line_split2(line, &LOCCTR, LABEL, MNEMONIC, OP1, OP2);
     }
+    // _END 출력
+    char tmp[3];
+    sprintf(tmp, "%02X", T_RECORD_ACCUMULATED_BYTE);
+    ONELINE_T_RECORD[7] = tmp[0];
+    ONELINE_T_RECORD[8] = tmp[1];
+    //fprintf(fp_obj, "%s\n", ONELINE_T_RECORD);
+    printf("%s\n", ONELINE_T_RECORD);
+
+    // M_record 출력
+    for(int i=0; i<M_RECORD_NUM;i++){
+        //fprintf(fp_obj, "%s\n", M_RECORDS[i]);
+        printf("%s\n", M_RECORDS[i]);
+    }
+    fprintf(fp_obj, "E%06X", STARTING_ADDR);
+
+    fprintf(fp_lst, "%3d %-4s %-35s", (LINE_NUM++)*LINE_NUM_SCALE, "", line+5);
+
+    fclose(fp_obj);
+    fclose(fp_lst);
+    fclose(fp_itm);
+    // itm file 삭제
 }
 
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2) {
@@ -412,11 +524,12 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
     OPCODE_MNEMONIC_MAP *opcode_memonic_map_node;
     SYM_node *sym1, *sym2;
 
-    char* tmp_mnemonic;
+    char *tmp_mnemonic;
     if (MNEMONIC[0] == '+') {
         strcpy(tmp_mnemonic, MNEMONIC + 1);
         e = 1;
-    } else {
+    }
+    else {
         strcpy(tmp_mnemonic, MNEMONIC);
         e = 0;
     }
@@ -450,7 +563,8 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
             if (*OP2 == '\0') {
                 sprintf(ret, "%02X%X%X", opcode_memonic_map_node->opcode, REG1, 0);
                 break;
-            } else {
+            }
+            else {
                 if (OP1[strlen(OP1) - 1] != ',') {
                     printf("operand comma err!\n");
                     return COMMA_ERR;
@@ -486,25 +600,26 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
                         b = 0, p = 1;
                         TA = sym1->address - PC_val;
                     }
-                    else if (B_val > -1 && 0 <= sym1->address - B_val && sym1->address - B_val <= 4095){
+                    else if (B_val > -1 && 0 <= sym1->address - B_val && sym1->address - B_val <= 4095) {
                         b = 1, p = 0;
                         TA = sym1->address - B_val;
                     }
                     else return ASSEMBLY_CODE_ERR;
                 }
-                else if (OP1[0] == '#'){
-                    for (int i = 0; i<(int)strlen(OP1);i++){
-                        if(!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
+                else if (OP1[0] == '#') {
+                    for (int i = 0; i < (int) strlen(OP1); i++) {
+                        if (!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
                     }
                     TA = atoi(OP1 + 1);
                     b = 0, p = 0;
                 }
-                else{
+                else {
                     printf("symbol err: %s\n", ptr);
                     return ASSEMBLY_CODE_ERR;
                 }
             }
-            sprintf(ret, "%02X%0X%03X", opcode_memonic_map_node->opcode+2*n+i, 8*x+4*b+2*p+e, TA&0xFFF);
+            sprintf(ret, "%02X%0X%03X", opcode_memonic_map_node->opcode + 2 * n + i, 8 * x + 4 * b + 2 * p + e,
+                    TA & 0xFFF);
             break;
         case 4:
             // n, i
@@ -529,19 +644,20 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
                     sprintf(m_record, "M%06X%02X", PC_val - 3, FORMAT4_LEN);
                     strcpy(M_RECORDS[M_RECORD_NUM++], m_record);
                 }
-                else if (OP1[0] == '#'){
-                    for (int i = 0; i<(int)strlen(OP1);i++){
-                        if(!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
+                else if (OP1[0] == '#') {
+                    for (int i = 0; i < (int) strlen(OP1); i++) {
+                        if (!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
                     }
                     TA = atoi(OP1 + 1);
                     b = 0, p = 0;
                 }
-                else{
+                else {
                     printf("symbol err: %s\n", ptr);
                     return ASSEMBLY_CODE_ERR;
                 }
             }
-            sprintf(ret, "%02X%0X%05X", opcode_memonic_map_node->opcode+2*n+i, 8*x+4*b+2*p+e, TA&0xFFFFF);
+            sprintf(ret, "%02X%0X%05X", opcode_memonic_map_node->opcode + 2 * n + i, 8 * x + 4 * b + 2 * p + e,
+                    TA & 0xFFFFF);
             break;
     }
     return OK;

@@ -25,8 +25,8 @@
 
 #define M_RECORD_LEN 10 // T.001000.1E
 #define TOTAL_M_RECORD_SIZE 100
-#define T_RECORD_LEN 30
-#define ONELINE_T_RECORD_SIZE 30*21
+#define ONELINE_T_RECORD_BYTE_SIZE 30
+#define ONELINE_T_RECORD_LINE_SIZE 9+30*2+1 // T.001000.1D.(30BYTE).\0
 #define OBJ_CODE_LEN 20
 #define FORMAT4_LEN 5
 
@@ -75,5 +75,6 @@ int find_byte_len(char* constant);
 void free_SYMTAB(SYM_node* head);
 INSTRUCTION line_split2(char* line, int* LOCCTR, char* LABEL, char* MNEMONIC, char* OP1, char* OP2);
 SYM_node *find_symbol(char* symbol);
+OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *OP2);
 
 #endif //SP_PROJ1_ASSEMBLER_COMMANDS_H
