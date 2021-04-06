@@ -183,6 +183,7 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
             assemble(INPUT_SPLIT[1]);
             break;
         case SYMBOL_CMD:
+            print_symbols();
             break;
         default:// WRONG_CMD
             printf("COMMAND err!\n");

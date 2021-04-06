@@ -28,6 +28,7 @@
 #define T_RECORD_LEN 30
 #define ONELINE_T_RECORD_SIZE 30*21
 #define OBJ_CODE_LEN 20
+#define FORMAT4_LEN 5
 
 typedef enum INSTRUCTION{
     _OPERATION = 0,
@@ -42,21 +43,28 @@ typedef enum INSTRUCTION{
     _ELSE = 9
 } INSTRUCTION;
 
+int B;
+
+//typedef struct REG{
+//    int number;
+//    int address;
+//} REG;
+//REG* B;
+//REG* PC;
+
 typedef struct SYM_node {
     char symbol[SYMBOL_LEN];
     int address;
     struct SYM_node *nxt;
 } SYM_node;
-
 SYM_node *SYMTAB_HEAD;
 SYM_node *LATEST_SYMTAB;
 
-int BASE_REG;
-char M_RECORDS[TOTAL_M_RECORD_SIZE][M_RECORD_LEN];
 int M_RECORD_NUM;
+char M_RECORDS[TOTAL_M_RECORD_SIZE][M_RECORD_LEN];
 
 OK_or_ERR assemble(char *filename);
-void print_symbol(char *);
+void print_symbols();
 INSTRUCTION line_split(char* line, char* label, char* mnemonic, char* op1, char* op2);
 OK_or_ERR pass1(FILE* fp, char* filename, int* LENGTH);
 INSTRUCTION get_instruction(char* mnemonic);
@@ -66,5 +74,6 @@ OPCODE_MNEMONIC_MAP* get_opcode2(char *mnemonic);
 int find_byte_len(char* constant);
 void free_SYMTAB(SYM_node* head);
 INSTRUCTION line_split2(char* line, int* LOCCTR, char* LABEL, char* MNEMONIC, char* OP1, char* OP2);
+SYM_node *find_symbol(char* symbol);
 
 #endif //SP_PROJ1_ASSEMBLER_COMMANDS_H
