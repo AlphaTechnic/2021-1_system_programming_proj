@@ -75,25 +75,25 @@ void refresh_input() {
 SUCCESS_or_FAIL input_split_by_comma() {
     int cur_ind, dx;
 
-    for (cur_ind = 0; INPUT[cur_ind] == ' ' || INPUT[cur_ind] == '\t'; cur_ind++); // s는 dump의 d를 가리키게 됨
+    for (cur_ind = 0; INPUT[cur_ind] == ' ' || INPUT[cur_ind] == '\t'; cur_ind++);
     while (cur_ind < MAX_INPUT_LEN) {
-        // utils.h에서 정의한 함수 get_dx_to_nxt_token()
         dx = get_dx_to_nxt_token(INPUT + cur_ind);
 
-        // 종료 조건 : 1. next 토큰이 더이상 없다면, -> 정상 종료 2. TOKEN 개수가 5개 이상 -> error 3. TOKEN의 길이가 너무 길거나 -> error
         if (dx == -1) break;
         if (NUM_OF_TOKENS >= MAXNUM_OF_TOKEN - 1) return FAIL;
         if (strlen(INPUT + cur_ind) > MAX_TOKEN_LEN) return FAIL;
 
         if (IS_COMMA == YES_COMMA) {
-            if (strcmp(INPUT + cur_ind, "") == 0) { // "[white space]," 인 경우
+            if (strcmp(INPUT + cur_ind, "") == 0) {
                 strcat(INPUT_SPLIT[--NUM_OF_TOKENS], ",");
                 NUM_OF_TOKENS++;
-            } else { // "[operand]," 인 경우
+            }
+            else {
                 strcpy(INPUT_SPLIT[NUM_OF_TOKENS], INPUT + cur_ind);
                 strcat(INPUT_SPLIT[NUM_OF_TOKENS++], ",");
             }
-        } else {
+        }
+        else {
             strcpy(INPUT_SPLIT[NUM_OF_TOKENS++], INPUT + cur_ind);
         }
         cur_ind += dx;

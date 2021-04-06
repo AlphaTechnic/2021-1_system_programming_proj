@@ -4,6 +4,8 @@
 
 test/
 sp_proj2_ref/
+sp_proj2_tmp/
+dirent.h
 .idea/
 .DS_Store
 
