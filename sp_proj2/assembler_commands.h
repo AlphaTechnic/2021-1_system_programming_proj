@@ -26,7 +26,7 @@
 #define M_RECORD_LEN 10 // T.001000.1E
 #define TOTAL_M_RECORD_SIZE 100
 #define ONELINE_T_RECORD_BYTE_SIZE 30
-#define ONELINE_T_RECORD_LINE_SIZE 9+30*2+1 // T.001000.1D.(30BYTE).\0
+#define ONELINE_T_RECORD_LINE_SIZE 9+30*20+1 // T.001000.1D.(30BYTE).\0
 #define OBJ_CODE_LEN 20
 #define FORMAT4_LEN 5
 
@@ -43,13 +43,13 @@ typedef enum INSTRUCTION{
     _ELSE = 9
 } INSTRUCTION;
 
-int B;
+int B_val;
 
 //typedef struct REG{
 //    int number;
 //    int address;
 //} REG;
-//REG* B;
+//REG* B_val;
 //REG* PC;
 
 typedef struct SYM_node {
@@ -59,6 +59,19 @@ typedef struct SYM_node {
 } SYM_node;
 SYM_node *SYMTAB_HEAD;
 SYM_node *LATEST_SYMTAB;
+
+typedef enum REG_num{
+    non_exist = -1,
+    regA = 0,
+    regX = 1,
+    regL = 2,
+    regB = 3,
+    regS = 4,
+    regT = 5,
+    regF = 6,
+    regPC = 8,
+    regSW = 9
+}REG_num;
 
 int M_RECORD_NUM;
 char M_RECORDS[TOTAL_M_RECORD_SIZE][M_RECORD_LEN];
@@ -76,5 +89,7 @@ void free_SYMTAB(SYM_node* head);
 INSTRUCTION line_split2(char* line, int* LOCCTR, char* LABEL, char* MNEMONIC, char* OP1, char* OP2);
 SYM_node *find_symbol(char* symbol);
 OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *OP2);
+OK_or_ERR pass2(char *filename, int PROGRAM_SIZE);
+REG_num get_REG_num(char* REG);
 
 #endif //SP_PROJ1_ASSEMBLER_COMMANDS_H

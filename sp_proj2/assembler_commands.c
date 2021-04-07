@@ -33,6 +33,7 @@ OK_or_ERR assemble(char *filename) {
     }
 
     SYMTAB_HEAD = NULL;
+    B_val = -1;
 
     // 여기서 pass1, pass2
     OK_or_ERR pass1_state = pass1(fp, name, &PROGRAM_SIZE);
@@ -42,8 +43,16 @@ OK_or_ERR assemble(char *filename) {
         return FILE_ERR;
     }
 
-    B = 0;
+    OK_or_ERR pass2_state = pass2(name, PROGRAM_SIZE);
+    if (pass2_state != OK){
+        free_SYMTAB(SYMTAB_HEAD);
+        return FILE_ERR;
+    }
 
+    free_SYMTAB(LATEST_SYMTAB);
+    LATEST_SYMTAB = SYMTAB_HEAD;
+    SYMTAB_HEAD = NULL;
+    printf("Successfully assembled %s\n", name);
     return OK;
 }
 
@@ -142,8 +151,8 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *LENGTH) {
             LOCCTR += dl;
         }
         else
-            fprintf(fp_itm, "%04X %-10s %s\n", LOCCTR, LABEL,
-                    MNEMONIC);//printf("%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
+            fprintf(fp_itm, "%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
+            //printf("%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
 
         fgets(line, LINE_LEN, fp);
         line[strlen(line) - 1] = '\0';
@@ -309,12 +318,13 @@ int find_byte_len(char *constant) {
 void free_SYMTAB(SYM_node *head) {
     SYM_node *cur_node = head;
     SYM_node *pre_node = NULL;
-    SYM_node *origin_node = head;
+    //SYM_node *origin_node = head;
 
     for (; cur_node; pre_node = cur_node, cur_node = cur_node->nxt) {
         free(pre_node);
     }
-    origin_node = NULL;
+    //origin_node = NULL;
+    head = NULL;
 }
 
 OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
@@ -376,7 +386,9 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     //fprintf(fp_obj, "H%-6s%06X%06X\n", PROGRAM_NAME, STARTING_ADDR, PROGRAM_SIZE);
     sprintf(ONELINE_T_RECORD, "T%06XLL", STARTING_ADDR);
 
+    int cnt = 0;
     while (type != _END) {
+        cnt++;
         if (feof(fp_itm)) {
             printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
             return ASSEMBLY_CODE_ERR;
@@ -384,7 +396,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         }
 
         char tmp[OBJ_CODE_LEN];
-        strcpy(obj_code, '\0');
+        strcpy(obj_code, "\0");
         if (type != _COMMENT) {
             if (MNEMONIC[0] == '+') strcpy(tmp, MNEMONIC + 1);
             else strcpy(tmp, MNEMONIC);
@@ -424,14 +436,14 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
                         return ASSEMBLY_CODE_ERR;
                         // 파일 닫고 .lst .obj 삭제해야함
                     }
-                    B = symbol_node->address;
+                    B_val = symbol_node->address;
                     LOCCTR = -1;
                 }
             }
             else if (type == _RESW || type == _RESB) {
                 while (type == _RESW || type == _RESB) {
                     //fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
-                    printf("%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+                    printf("-lst-%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
                     fgets(line, LINE_LEN, fp_itm);
                     line[strlen(line) - 1] = '\0';
                     type = line_split2(line, &LOCCTR, LABEL, MNEMONIC, OP1, OP2);
@@ -447,8 +459,9 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
                 ONELINE_T_RECORD[7] = tmp[0];
                 ONELINE_T_RECORD[8] = tmp[1];
                 //fprintf(fp_obj, "%s\n", ONELINE_T_RECORD);
-                printf("%s\n", ONELINE_T_RECORD);
+                printf("-obj-%s\n", ONELINE_T_RECORD);
                 T_RECORD_ACCUMULATED_BYTE = 0;
+                sprintf(ONELINE_T_RECORD, "T%06X__", LOCCTR);
                 new_line_flag = 0;
             }
             T_RECORD_ACCUMULATED_BYTE += strlen(obj_code) / 2;
@@ -465,13 +478,13 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         }
 
         if (comment_flag){
-            fprintf(fp_lst, "%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
-            //printf("%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
+            //fprintf(fp_lst, "%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
+            printf("-lst-%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
             comment_flag = 0;
         }
         else{
-            fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
-            //printf("%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
+            //fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
+            printf("-lst-%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
         }
         fgets(line, LINE_LEN, fp_itm);
         line[strlen(line) - 1] = '\0';
@@ -483,21 +496,23 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     ONELINE_T_RECORD[7] = tmp[0];
     ONELINE_T_RECORD[8] = tmp[1];
     //fprintf(fp_obj, "%s\n", ONELINE_T_RECORD);
-    printf("%s\n", ONELINE_T_RECORD);
+    printf("-obj-%s\n", ONELINE_T_RECORD);
 
     // M_record 출력
     for(int i=0; i<M_RECORD_NUM;i++){
         //fprintf(fp_obj, "%s\n", M_RECORDS[i]);
-        printf("%s\n", M_RECORDS[i]);
+        printf("-obj-%s\n", M_RECORDS[i]);
     }
-    fprintf(fp_obj, "E%06X", STARTING_ADDR);
-
-    fprintf(fp_lst, "%3d %-4s %-35s", (LINE_NUM++)*LINE_NUM_SCALE, "", line+5);
+    //fprintf(fp_obj, "E%06X", STARTING_ADDR);
+    //fprintf(fp_lst, "%3d %-4s %-35s", (LINE_NUM++)*LINE_NUM_SCALE, "", line+5);
+    printf("-obj-E%06X", STARTING_ADDR);
+    printf("-lst-E%06X", STARTING_ADDR);
 
     fclose(fp_obj);
     fclose(fp_lst);
     fclose(fp_itm);
     // itm file 삭제
+    return OK;
 }
 
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2) {
@@ -517,14 +532,13 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
     int format = -1;
     int n, i, x, b, p, e;
     int TA = 0;
-    int B_val = -1;
     char *ptr;
     char m_record[M_RECORD_LEN];
 
     OPCODE_MNEMONIC_MAP *opcode_memonic_map_node;
     SYM_node *sym1, *sym2;
 
-    char *tmp_mnemonic;
+    char tmp_mnemonic[MNEMONIC_LEN];
     if (MNEMONIC[0] == '+') {
         strcpy(tmp_mnemonic, MNEMONIC + 1);
         e = 1;
@@ -542,21 +556,21 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
     PC_val += format;
 
     char tmp_op1[OPERAND_LEN];
-    int REG1, REG2;
+    REG_num REG1, REG2;
     switch (format) {
         case 1:
             sprintf(ret, "%02X", opcode_memonic_map_node->opcode);
             break;
         case 2:
             if (*OP1 == '\0') {
-                printf("\"%s\" need a operand\n");
+                printf("\"%s\" need a operand\n", tmp_mnemonic);
                 return ASSEMBLY_CODE_ERR;
             }
             strcpy(tmp_op1, OP1);
             if (OP1[strlen(OP1) - 1] == ',') tmp_op1[strlen(OP1) - 1] = '\0';
-            REG1 = hexstr_to_decint(OP1);
-            if (REG1 >= 10 || REG1 == 7) {
-                printf("symbol error: %s\n", tmp_op1);
+            REG1 = get_REG_num(tmp_op1);
+            if (REG1 == non_exist) {
+                printf("There's no reg \"%s\"\n", tmp_op1);
                 return ASSEMBLY_CODE_ERR;
             }
 
@@ -566,16 +580,15 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
             }
             else {
                 if (OP1[strlen(OP1) - 1] != ',') {
-                    printf("operand comma err!\n");
                     return COMMA_ERR;
                 }
                 strtok(OP1, " ,");
-                REG2 = hexstr_to_decint(OP2);
-                if (REG2 >= 10 || REG2 == 7) {
-                    printf("symbol error: %s\n", OP2);
+                REG2 = get_REG_num(OP2);
+                if (REG2 == non_exist) {
+                    printf("There's no reg \"%s\"\n", OP2);
                     return ASSEMBLY_CODE_ERR;
                 }
-                sprintf(ret, "%02X%X%X", opcode_memonic_map_node->opcode, REG2, 0);
+                sprintf(ret, "%02X%X%X", opcode_memonic_map_node->opcode, REG1, REG2);
             }
             break;
         case 3:
@@ -607,7 +620,7 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
                     else return ASSEMBLY_CODE_ERR;
                 }
                 else if (OP1[0] == '#') {
-                    for (int i = 0; i < (int) strlen(OP1); i++) {
+                    for (int i = 1; i < (int) strlen(OP1); i++) {
                         if (!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
                     }
                     TA = atoi(OP1 + 1);
@@ -645,7 +658,7 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
                     strcpy(M_RECORDS[M_RECORD_NUM++], m_record);
                 }
                 else if (OP1[0] == '#') {
-                    for (int i = 0; i < (int) strlen(OP1); i++) {
+                    for (int i = 1; i < (int) strlen(OP1); i++) {
                         if (!isdigit(OP1[i])) return ASSEMBLY_CODE_ERR;
                     }
                     TA = atoi(OP1 + 1);
@@ -665,8 +678,34 @@ OK_or_ERR make_obj_code_by_a_line(char *ret, int PC_val, char *MNEMONIC, char *O
 
 SYM_node *find_symbol(char *symbol) {
     SYM_node *cur_node = SYMTAB_HEAD;
-    while (cur_node != NULL) {
+    for (;cur_node != NULL; cur_node = cur_node->nxt) {
         if (strcmp(cur_node->symbol, symbol) == 0) return cur_node;
     }
     return cur_node;
+}
+
+REG_num get_REG_num(char* REG){
+    switch(hash_func(REG)){
+        case 5:
+            return regA;
+        case 8:
+            return regX;
+        case 16:
+            return regL;
+        case 6:
+            return regB;
+        case 3:
+            return regS;
+        case 4:
+            return regT;
+        case 10:
+            if (strcmp(REG, "F") == 0) return regF;
+            else if (strcmp(REG, "SW") == 0) return regSW;
+            else break;
+        case 7:
+            return regPC;
+        default:
+            return non_exist;
+    }
+    return non_exist;
 }

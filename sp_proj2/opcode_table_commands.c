@@ -16,7 +16,7 @@ void init_hash_table(char *filename) {
 
     for (int i = 0; i < MAX_HASHTABLE_SIZE; i++) HASH_TABLE[i] = NULL;
     while (1) {
-        if (fscanf(fp, "%s%s%s", cur_node->opcode, cur_node->mnemonic, cur_node->format) == EOF) break;
+        if (fscanf(fp, "%X%s%s", &(cur_node->opcode), cur_node->mnemonic, cur_node->format) == EOF) break;
         ind = hash_func(cur_node->mnemonic);
 
         // connect
@@ -51,7 +51,7 @@ int get_opcode(char *mnemonic) {
     OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {
-            printf("opcode is %s\n", cur_node->opcode);
+            printf("opcode is %02X\n", cur_node->opcode);
             return OK;
         }
         cur_node = cur_node->nxt;
@@ -74,12 +74,12 @@ void opcodelist() {
             printf("\n");
             continue;
         }
-        printf("[%s,%s]", cur_node->mnemonic, cur_node->opcode);
+        printf("[%s,%02X]", cur_node->mnemonic, cur_node->opcode);
         cur_node = cur_node->nxt;
 
         while (cur_node != NULL){
             printf(" -> ");
-            printf("[%s,%s]", cur_node->mnemonic, cur_node->opcode);
+            printf("[%s,%02X]", cur_node->mnemonic, cur_node->opcode);
             cur_node = cur_node->nxt;
         }
         printf("\n");

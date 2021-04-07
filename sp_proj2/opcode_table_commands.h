@@ -10,14 +10,14 @@
 #include <string.h>
 #include  <stdlib.h>
 
-#define MAX_OPCODE_SIZE 3
+// #define MAX_OPCODE_SIZE 3
 #define MAX_INSTRUCTION_SIZE 10
 #define MAX_FORMAT_SIZE 10
 #define MAX_HASHTABLE_SIZE 20
 
 /* 사용자 정의 data type*/
 typedef struct OPCODE_MNEMONIC_MAP {
-    char opcode[MAX_OPCODE_SIZE];
+    int opcode;
     char mnemonic[MAX_INSTRUCTION_SIZE];
     char format[MAX_FORMAT_SIZE];
     struct OPCODE_MNEMONIC_MAP *nxt;
