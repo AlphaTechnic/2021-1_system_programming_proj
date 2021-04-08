@@ -10,6 +10,8 @@
 #include <string.h>
 #include  <stdlib.h>
 
+#include "utils.h"
+
 // #define MAX_OPCODE_SIZE 3
 #define MAX_INSTRUCTION_SIZE 10
 #define MAX_FORMAT_SIZE 10
@@ -27,8 +29,8 @@ typedef struct OPCODE_MNEMONIC_MAP {
 OPCODE_MNEMONIC_MAP* HASH_TABLE[MAX_HASHTABLE_SIZE];
 
 /* 함수 원형 */
-int hash_func(char *mnemonic);
 int get_opcode(char *mnemonic);
+OPCODE_MNEMONIC_MAP *get_opcode2(char *mnemonic);
 void init_hash_table(char *filename);
 void opcodelist();
 void free_hash_table();

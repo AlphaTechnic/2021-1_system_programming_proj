@@ -117,7 +117,7 @@ void free_log_of_instructions() {
 OK_or_ERR type(char *filename) {
     DIR *dir = opendir(filename);
     FILE *fp = fopen(filename, "r");
-    if (!dir) return FILE_ERR;
+    if (dir) return FILE_ERR;
     if (!fp) return FILE_ERR;
 
     char ch;

@@ -113,7 +113,7 @@ COMMAND get_command() {
     else if ((strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0) && NUM_OF_TOKENS == 1) return QUIT_CMD;
     else if ((strcmp(cmd, "d") == 0 || strcmp(cmd, "dir") == 0) && NUM_OF_TOKENS == 1) return DIR_CMD;
     else if ((strcmp(cmd, "hi") == 0 || strcmp(cmd, "history") == 0) && NUM_OF_TOKENS == 1) return HISTORY_CMD;
-    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return OPCODELIST_CMD;
+    else if (strcmp(cmd, "type") == 0 && NUM_OF_TOKENS == 2) return TYPE_CMD;
 
         // memory commands
     else if ((strcmp(cmd, "du") == 0 || strcmp(cmd, "dump") == 0) && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 3))
@@ -139,7 +139,8 @@ COMMAND get_command() {
 /*리턴값 : SUCCESS - 성공인 경우, FAIL - 실패인 경우*/
 /*------------------------------------------------------------------------------------*/
 SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
-    int RESULT = SUCCESS;
+    SUCCESS_or_FAIL RESULT = SUCCESS;
+    OK_or_ERR state = OK;
     switch (cmd) {
         // shell commands
         case HELP_CMD:
@@ -155,8 +156,9 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
             break;
         case TYPE_CMD:
             type(INPUT_SPLIT[1]);
+            break;
 
-            // memory commands
+        // memory commands
         case DUMP_CMD:
             RESULT = dump(NUM_OF_TOKENS, INPUT_SPLIT[1], INPUT_SPLIT[2]);
             break;
@@ -170,7 +172,7 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
             reset();
             break;
 
-            // opcode table commands
+        // opcode table commands
         case OPCODE_MNEMONIC_CMD:
             RESULT = get_opcode(INPUT_SPLIT[1]);
             break;
@@ -178,9 +180,13 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
             opcodelist();
             break;
 
-            // assembler commands
+        // assembler commands
         case ASSEMBLE_CMD:
-            assemble(INPUT_SPLIT[1]);
+            state = assemble(INPUT_SPLIT[1]);
+            if (state < 0) {
+                printf("Assemble err!\n");
+                RESULT = FAIL;
+            }
             break;
         case SYMBOL_CMD:
             print_symbols();
