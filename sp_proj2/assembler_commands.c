@@ -108,7 +108,8 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
         printf("Error! Check line number \"%d\"\n", 0);
         return ASSEMBLY_CODE_ERR;
     }
-    STARTING_ADDR = atoi(OP1);
+    //STARTING_ADDR = atoi(OP1);
+    STARTING_ADDR = hexstr_to_decint(OP1);
     LOCCTR = STARTING_ADDR;
 
     // asm 첫 명령을 itm 파일에 기록
@@ -306,8 +307,8 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     line_split2(line, &LOCCTR, LABEL, MNEMONIC, OP1, OP2);
 
     // 프로그램 이름과 starting address, START symbol lst 파일에 기록
-    //fprintf(fp_lst, "%3d %-40s\n", (LINE_NUM++) * LINE_NUM_SCALE, line);
-    printf("-lst-%3d %-40s\n", (LINE_NUM++) * LINE_NUM_SCALE, line);
+    fprintf(fp_lst, "%3d %-40s\n", (LINE_NUM++) * LINE_NUM_SCALE, line);
+    //printf("-lst-%3d %-40s\n", (LINE_NUM++) * LINE_NUM_SCALE, line);
     STARTING_ADDR = LOCCTR;
     strcpy(PROGRAM_NAME, LABEL);
 
@@ -345,9 +346,9 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
                 //printf("-obj-%s\n", M_RECORDS[i]);
             }
             fprintf(fp_obj, "E%06X", STARTING_ADDR);
-            //fprintf(fp_lst, "%3d %-4s %-35s", (LINE_NUM++) * LINE_NUM_SCALE, "", line + 5);
+            fprintf(fp_lst, "%3d %-4s %-35s", (LINE_NUM++) * LINE_NUM_SCALE, "", line + 5);
             //printf("-obj-E%06X", STARTING_ADDR);
-            printf("-lst-E%06X", STARTING_ADDR);
+            //printf("-lst-E%06X", STARTING_ADDR);
 
             fclose(fp_obj);
             fclose(fp_lst);
@@ -359,8 +360,8 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         if (type == _COMMENT) {
             while (type == _COMMENT) {
                 strcpy(obj_code, "\0");
-                //fprintf(fp_lst, "%3d %-4s %-35s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, "", line + 5, obj_code);
-                printf("-lst-%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
+                fprintf(fp_lst, "%3d %-4s %-35s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, "", line + 5, obj_code);
+                //printf("-lst-%3d %-4s %-35s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, "", line + 5, obj_code);
 
                 // itm 파일을 읽고 parsing
                 fgets(line, LINE_LEN, fp_itm);
@@ -415,8 +416,8 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         }
         else if (type == _RESW || type == _RESB) {
             while (type == _RESW || type == _RESB) {
-                //fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
-                printf("-lst-%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+                fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+                //printf("-lst-%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
                 fgets(line, LINE_LEN, fp_itm);
                 line[strlen(line) - 1] = '\0';
                 type = line_split2(line, &LOCCTR, LABEL, MNEMONIC, OP1, OP2);
@@ -456,8 +457,8 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         }
 
         // lst 파일에 기록
-        //fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
-        printf("-lst-%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
+        fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+        //printf("-lst-%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
 
         // itm 파일을 읽고 parsing
         fgets(line, LINE_LEN, fp_itm);
@@ -479,6 +480,8 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
     char m_record[M_RECORD_LEN];
 
     OPCODE_MNEMONIC_MAP *opcode_memonic_map_node;
+    int is_digit_operand = 1;
+    SYM_node* sym;
 
     char mnemonic_refined[MNEMONIC_LEN];
     if (MNEMONIC[0] == '+') { // 4형식
@@ -558,14 +561,13 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
             }
 
             // digit operand라면 symtab을 탐색할 필요가 없다
-            int digit_operand = 1;
             for (int i = 0; i <(int) strlen(ptr); i++){
                 if(!isdigit(ptr[i])) {
-                    digit_operand = 0;
+                    is_digit_operand = 0;
                     break;
                 }
             }
-            if (digit_operand){
+            if (is_digit_operand){
                 DISP = atoi(OP1+1);
                 if (strcmp(MNEMONIC, "LDB") == 0) B_val = DISP;
 
@@ -575,8 +577,7 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
                 break;
             }
 
-            // sym tab에서 symbol을 꺼내어
-            SYM_node* sym;
+            // sym tab에서 symbol을 꺼내어 opcode 생성
             sym = find_symbol_or_NULL(ptr);
             if (sym) {
                 // set BASE
@@ -616,37 +617,43 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
             // b, p : PC_val relative 먼저 시도해보고, 불가능하다면 BASE relative
             ptr = strtok(OP1, " #@,");
             if (!ptr) b = 0, p = 0, DISP = 0;
-            else {
-                int digit_operand = 1;
-                for (int i = 0; i <(int) strlen(ptr); i++){
-                    if(!isdigit(ptr[i])) {
-                        digit_operand = 0;
-                        break;
-                    }
-                }
-                if (digit_operand){
-                    DISP = atoi(OP1+1);
-                    b = 0, p = 0;
-                }
 
-                SYM_node *sym;
-                sym = find_symbol_or_NULL(ptr);
-                if (sym) {
-                    // set BASE
-                    b = 0, p = 0;
-                    if (strcmp(MNEMONIC, "LDB") == 0) B_val = sym->address;
-
-                    DISP = sym->address;
-                    sprintf(m_record, "M%06X%02X", PC_val - 3, FORMAT4_TA_LEN);
-                    strcpy(M_RECORDS[M_RECORD_NUM++], m_record);
-                }
-                else {
-                    printf("symbol err: %s\n", ptr);
-                    return ASSEMBLY_CODE_ERR;
+            // digit_operand라면 symtab을 탐색할 필요가 없다.
+            is_digit_operand = 1;
+            for (int i = 0; i <(int) strlen(ptr); i++){
+                if(!isdigit(ptr[i])) {
+                    is_digit_operand = 0;
+                    break;
                 }
             }
-            sprintf(ret, "%02X%0X%05X", opcode_memonic_map_node->opcode + 2 * n + i, 8 * x + 4 * b + 2 * p + e,
-                    DISP & 0xFFFFF);
+            if (is_digit_operand){
+                DISP = atoi(OP1+1);
+                if (strcmp(MNEMONIC, "LDB") == 0) B_val = DISP;
+
+                b = 0, p = 0;
+                sprintf(ret, "%02X%0X%05X", opcode_memonic_map_node->opcode + 2 * n + i, 8 * x + 4 * b + 2 * p + e,
+                        DISP & 0xFFFFF);
+                break;
+            }
+
+            // sym tab에서 symbol을 꺼내어 opcode 생성
+            SYM_node *sym;
+            sym = find_symbol_or_NULL(ptr);
+            if (sym) {
+                // set BASE
+                if (strcmp(MNEMONIC, "LDB") == 0) B_val = sym->address;
+                b = 0, p = 0;
+
+                DISP = sym->address;
+                sprintf(ret, "%02X%0X%05X", opcode_memonic_map_node->opcode + 2 * n + i, 8 * x + 4 * b + 2 * p + e,
+                        DISP & 0xFFFFF);
+                sprintf(m_record, "M%06X%02X", PC_val - 3, FORMAT4_TA_LEN);
+                strcpy(M_RECORDS[M_RECORD_NUM++], m_record);
+            }
+            else {
+                printf("symbol err: %s\n", ptr);
+                return ASSEMBLY_CODE_ERR;
+            }
             break;
         default:
             break;
