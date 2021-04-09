@@ -45,7 +45,7 @@ char M_RECORDS[TOTAL_M_RECORD_SIZE][M_RECORD_LEN];
 OK_or_ERR assemble(char *filename);
 OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE);
 OK_or_ERR pass2(char *filename, int PROGRAM_SIZE);
-OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *OP2);
+OK_or_ERR make_obj_code(char *obj_code, int PC_val, char *MNEMONIC, char *OP1, char *OP2, int STARTING_ADDR);
 
 // symtab 관련 함수
 void print_symbols();

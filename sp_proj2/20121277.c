@@ -184,7 +184,6 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
         case ASSEMBLE_CMD:
             state = assemble(INPUT_SPLIT[1]);
             if (state < 0) {
-                printf("Assemble err!\n");
                 RESULT = FAIL;
             }
             break;

@@ -119,7 +119,7 @@ INSTRUCTION line_split(char *line, char *LABEL, char *MNEMONIC, char *OP1, char 
 /*------------------------------------------------------------------------------------*/
 /*함수 : line_split2*/
 /*목적 : line_split 함수의 parsing 기능을 수행하면서 추가로 LOCCTR 값을 decimal int 값으로 저장한다*/
-/*리턴값 : line의 종*/
+/*리턴값 : line의 종류*/
 /*------------------------------------------------------------------------------------*/
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2) {
     char tmp[LINE_LEN];
