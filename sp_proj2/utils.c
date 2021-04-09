@@ -54,6 +54,18 @@ int hexstr_to_decint(char *hexstr) {
 }
 
 /*------------------------------------------------------------------------------------*/
+/*함수 : hash_func*/
+/*목적 : string을 입력 받아 이를 0부터 19까지 20개의 숫자에 mapping한다. 입력 받은 명령어를 구성하는 모든 문자의
+ * ASCII  값을 더하여, 20으로 나눈다.*/
+/*리턴값 : total % max_hash_size*/
+/*------------------------------------------------------------------------------------*/
+int hash_func(char *string, int max_hash_size) {
+    int total = 0;
+    for (int i = 0; i < (int)strlen(string); i++) total += string[i];
+    return total % max_hash_size;
+}
+
+/*------------------------------------------------------------------------------------*/
 /*함수 : line_split*/
 /*목적 : line을 char 포인터로 입력받아 parsing하여 line에서 LABEL, MNEMONIC, OP1, OP2를 추출하고 정하여 caller에게 알려준다.*/
 /*리턴값 : type(어떤 유형의 line인지) */
@@ -110,11 +122,11 @@ INSTRUCTION line_split(char *line, char *LABEL, char *MNEMONIC, char *OP1, char 
 /*리턴값 : line의 종*/
 /*------------------------------------------------------------------------------------*/
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2) {
-    char buf[LINE_LEN];
+    char tmp[LINE_LEN];
     char *ptr;
 
-    strcpy(buf, line);
-    ptr = strtok(buf, " \t");
+    strcpy(tmp, line);
+    ptr = strtok(tmp, " \t");
     if (!ptr) return _ELSE;
     if (!(*ptr)) return _ELSE;
     *LOCCTR = hexstr_to_decint(ptr);
@@ -147,18 +159,18 @@ INSTRUCTION get_instruction(char *mnemonic) {
 /*목적 : BYTE 명령의 operand에 있는 상수가 몇 byte인지 계산하는 함수 */
 /*리턴값 : byte size 정수값*/
 /*------------------------------------------------------------------------------------*/
-int get_byte_size(char *constant) {
-    int len = 0;
+int get_byte_size(char *BYTE_operand) {
+    int byte_size = 0;
     char *ptr;
-    if (constant[0] == 'C') {
-        ptr = strtok(constant, "C`'");
-        len = (int) strlen(ptr);
+    if (BYTE_operand[0] == 'C') {
+        ptr = strtok(BYTE_operand, "C`'");
+        byte_size = (int) strlen(ptr);
     }
-    else if (constant[0] == 'X') {
-        ptr = strtok(constant, "X`'");
-        len = (int) strlen(ptr) / 2;
+    else if (BYTE_operand[0] == 'X') {
+        ptr = strtok(BYTE_operand, "X`'");
+        byte_size = (int) strlen(ptr) / 2;
     }
-    return len;
+    return byte_size;
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -167,16 +179,15 @@ int get_byte_size(char *constant) {
 /*리턴값 : OK - 파일 열기 성공, FILE_ERR - 파일 열기 실패*/
 /*------------------------------------------------------------------------------------*/
 OK_or_ERR file_open(char* filename, FILE** fp_itm, FILE** fp_lst, FILE** fp_obj){
-    // intermediate 파일을 읽기모드로 open
-    char filename_itm[NAME_LEN];
+    char target_file[NAME_LEN];
 
-    strcpy(filename_itm, filename);
-    strcat(filename_itm, ".itm");
-    *fp_itm = fopen(filename_itm, "r");
+    // intermediate 파일을 읽기모드로 open
+    strcpy(target_file, filename);
+    strcat(target_file, ".itm");
+    *fp_itm = fopen(target_file, "r");
     if (!(*fp_itm)) return FILE_ERR;
 
     // lst 파일을 쓰기모드로 open
-    char target_file[NAME_LEN];
     strcpy(target_file, filename);
     *fp_lst = fopen(strcat(target_file, ".lst"), "w");
     if (!(*fp_lst)) return FILE_ERR;
@@ -219,16 +230,4 @@ REG_num get_REG_num(char *REG) {
             return non_exist;
     }
     return non_exist;
-}
-
-/*------------------------------------------------------------------------------------*/
-/*함수 : hash_func*/
-/*목적 : string을 입력 받아 이를 0부터 19까지 20개의 숫자에 mapping한다. 입력 받은 명령어를 구성하는 모든 문자의
- * ASCII  값을 더하여, 20으로 나눈다.*/
-/*리턴값 : total % max_hash_size*/
-/*------------------------------------------------------------------------------------*/
-int hash_func(char *string, int max_hash_size) {
-    int total = 0;
-    for (int i = 0; i < (int)strlen(string); i++) total += string[i];
-    return total % max_hash_size;
 }

@@ -62,19 +62,6 @@ OK_or_ERR assemble(char *filename) {
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : print_symbols*/
-/*목적 : assemble 과정 중에 생성된 symbol table을 화면에 출력한다.*/
-/*리턴값 : 없음*/
-/*------------------------------------------------------------------------------------*/
-void print_symbols() {
-    SYM_node *cur_node = LATEST_SYMTAB;
-    while (cur_node) {
-        printf("\t%-10s %04X\n", cur_node->symbol, cur_node->address);
-        cur_node = cur_node->nxt;
-    }
-}
-
-/*------------------------------------------------------------------------------------*/
 /*함수 : pass1*/
 /*목적 : 1. .asm 파일을 한 줄씩 읽어들이면서, 각 line에 location counter를 할당하면서 intermediate(확장자 .imt) 파일을 생성한다.
         2. pass2에서 object code를 만들 때 참조할 SYMBOL TABLE을 생성한다.*/
@@ -146,7 +133,7 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
             break;
         }
         if (type == _COMMENT) {
-            while (type == _COMMENT){
+            while (type == _COMMENT) {
                 // itm 파일에 기록
                 fprintf(fp_itm, "%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
                 //printf("%04X %-10s %s\n", LOCCTR, LABEL, MNEMONIC);
@@ -210,60 +197,6 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : push_to_symtab*/
-/*목적 : symbol과 그에 대응하는 location 값을 symtab에 저장하는 함수이다.*/
-/*리턴값 : 없음 */
-/*------------------------------------------------------------------------------------*/
-void push_to_symtab(char *symbol, int addr) {
-    SYM_node *pre_node = NULL;
-    SYM_node *cur_node = SYMTAB_HEAD;
-    SYM_node *node_to_insert = malloc(sizeof(SYM_node));
-
-    // 삽입할 노드 생성
-    strcpy(node_to_insert->symbol, symbol);
-    node_to_insert->address = addr;
-    node_to_insert->nxt = NULL;
-
-    // symtab이 비어있다면, node를 head에 바로 삽입
-    if (!SYMTAB_HEAD) {
-        SYMTAB_HEAD = node_to_insert;
-        return;
-    }
-
-    // linked list를 순회하면서 알파벳 순서에 맞는 위치를 찾고 삽입하는 알고리즘
-    for (; cur_node; pre_node = cur_node, cur_node = cur_node->nxt) {
-        if (strcmp(cur_node->symbol, node_to_insert->symbol) > 0) {
-            if (!pre_node) { // 삽입할 노드가 알파벳 가장 첫 순서라면, head에 삽입
-                SYMTAB_HEAD = node_to_insert;
-                node_to_insert->nxt = cur_node;
-            }
-            else { // 알파벳 순서에 맞게 삽입
-                pre_node->nxt = node_to_insert;
-                node_to_insert->nxt = cur_node;
-            }
-            return;
-        }
-    }
-    // 삽입할 노드가 알파벳 마지막 순서라면, tail에 삽
-    pre_node->nxt = node_to_insert;
-}
-
-/*------------------------------------------------------------------------------------*/
-/*함수 : free_SYMTAB*/
-/*목적 : SYMTAB에 할당되어 있는 데이터를 해제하는 함수*/
-/*리턴값 : 없*/
-/*------------------------------------------------------------------------------------*/
-void free_SYMTAB(SYM_node *head) {
-    SYM_node *cur_node = head;
-    SYM_node *pre_node = NULL;
-
-    for (; cur_node; pre_node = cur_node, cur_node = cur_node->nxt) {
-        free(pre_node);
-    }
-    head = NULL;
-}
-
-/*------------------------------------------------------------------------------------*/
 /*함수 : pass2*/
 /*목적 : itm 파일의 line을 읽으면서 lst 파일과 obj 파일을 생성하는 함수이다.*/
 /*리턴값 : OK - 성공, ERR - 실패*/
@@ -289,10 +222,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     SYM_node *symbol_node;
     char obj_code[OBJ_CODE_LEN];
     char line[LINE_LEN];
-    char LABEL[LABEL_LEN];
-    char MNEMONIC[MNEMONIC_LEN];
-    char OP1[OPERAND_LEN];
-    char OP2[OPERAND_LEN];
+    char LABEL[LABEL_LEN], MNEMONIC[MNEMONIC_LEN], OP1[OPERAND_LEN], OP2[OPERAND_LEN];
 
     // 프로그램의 정보들을 관리 및 저장하는 변수들
     char PROGRAM_NAME[NAME_LEN];
@@ -323,9 +253,9 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     fprintf(fp_obj, "H%-6s%06X%06X\n", PROGRAM_NAME, STARTING_ADDR, PROGRAM_SIZE);
     sprintf(ONELINE_T_RECORD, "T%06X__", STARTING_ADDR);
 
-    int cnt = 0;
+    //int cnt = 0;
     while (1) {
-        cnt++;
+        //cnt++;
         if (feof(fp_itm)) {
             printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
             ////******************* 여기서 파일 닫고 itm, obj, lsm 파일 삭제 *******************///////////
@@ -481,7 +411,7 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
 
     OPCODE_MNEMONIC_MAP *opcode_memonic_map_node;
     int is_digit_operand = 1;
-    SYM_node* sym;
+    SYM_node *sym;
 
     char mnemonic_refined[MNEMONIC_LEN];
     if (MNEMONIC[0] == '+') { // 4형식
@@ -526,7 +456,7 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
             }
 
             // reg operand가 2개인 경
-            if (OP1[strlen(OP1) - 1] != ',') { // operand 2개를 입력하는데 comma를 사이에 넣지 않았면 오류
+            if (OP1[strlen(OP1) - 1] != ',') { // operand 2개를 입력하는데 comma를 사이에 넣지 않았다면 오류
                 return COMMA_ERR;
             }
             strtok(OP1, " ,");
@@ -561,14 +491,14 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
             }
 
             // digit operand라면 symtab을 탐색할 필요가 없다
-            for (int i = 0; i <(int) strlen(ptr); i++){
-                if(!isdigit(ptr[i])) {
+            for (int i = 0; i < (int) strlen(ptr); i++) {
+                if (!isdigit(ptr[i])) {
                     is_digit_operand = 0;
                     break;
                 }
             }
-            if (is_digit_operand){
-                DISP = atoi(OP1+1);
+            if (is_digit_operand) {
+                DISP = atoi(OP1 + 1);
                 if (strcmp(MNEMONIC, "LDB") == 0) B_val = DISP;
 
                 b = 0, p = 0;
@@ -620,14 +550,14 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
 
             // digit_operand라면 symtab을 탐색할 필요가 없다.
             is_digit_operand = 1;
-            for (int i = 0; i <(int) strlen(ptr); i++){
-                if(!isdigit(ptr[i])) {
+            for (int i = 0; i < (int) strlen(ptr); i++) {
+                if (!isdigit(ptr[i])) {
                     is_digit_operand = 0;
                     break;
                 }
             }
-            if (is_digit_operand){
-                DISP = atoi(OP1+1);
+            if (is_digit_operand) {
+                DISP = atoi(OP1 + 1);
                 if (strcmp(MNEMONIC, "LDB") == 0) B_val = DISP;
 
                 b = 0, p = 0;
@@ -662,6 +592,19 @@ OK_or_ERR make_obj_code(char *ret, int PC_val, char *MNEMONIC, char *OP1, char *
 }
 
 /*------------------------------------------------------------------------------------*/
+/*함수 : print_symbols*/
+/*목적 : assemble 과정 중에 생성된 symbol table을 화면에 출력한다.*/
+/*리턴값 : 없음*/
+/*------------------------------------------------------------------------------------*/
+void print_symbols() {
+    SYM_node *cur_node = LATEST_SYMTAB;
+    while (cur_node) {
+        printf("\t%-10s %04X\n", cur_node->symbol, cur_node->address);
+        cur_node = cur_node->nxt;
+    }
+}
+
+/*------------------------------------------------------------------------------------*/
 /*함수 : find_symbol_or_NULL*/
 /*목적 : symtab을 탐색하여, 인자로 주어진 symbol string에 해당하는 정보를 찾는다*/
 /*리턴값 : symbol string이 symtab에 있다면, 해당 정보를 return,  그렇지 않다면, NULL을 return*/
@@ -673,3 +616,58 @@ SYM_node *find_symbol_or_NULL(char *symbol) {
     }
     return cur_node;
 }
+
+/*------------------------------------------------------------------------------------*/
+/*함수 : push_to_symtab*/
+/*목적 : symbol과 그에 대응하는 location 값을 symtab에 저장하는 함수이다.*/
+/*리턴값 : 없음 */
+/*------------------------------------------------------------------------------------*/
+void push_to_symtab(char *symbol, int addr) {
+    SYM_node *pre_node = NULL;
+    SYM_node *cur_node = SYMTAB_HEAD;
+    SYM_node *node_to_insert = malloc(sizeof(SYM_node));
+
+    // 삽입할 노드 생성
+    strcpy(node_to_insert->symbol, symbol);
+    node_to_insert->address = addr;
+    node_to_insert->nxt = NULL;
+
+    // symtab이 비어있다면, node를 head에 바로 삽입
+    if (!SYMTAB_HEAD) {
+        SYMTAB_HEAD = node_to_insert;
+        return;
+    }
+
+    // linked list를 순회하면서 알파벳 순서에 맞는 위치를 찾고 삽입하는 알고리즘
+    for (; cur_node; pre_node = cur_node, cur_node = cur_node->nxt) {
+        if (strcmp(cur_node->symbol, node_to_insert->symbol) > 0) {
+            if (!pre_node) { // 삽입할 노드가 알파벳 가장 첫 순서라면, head에 삽입
+                SYMTAB_HEAD = node_to_insert;
+                node_to_insert->nxt = cur_node;
+            }
+            else { // 알파벳 순서에 맞게 삽입
+                pre_node->nxt = node_to_insert;
+                node_to_insert->nxt = cur_node;
+            }
+            return;
+        }
+    }
+    // 삽입할 노드가 알파벳 마지막 순서라면, tail에 삽
+    pre_node->nxt = node_to_insert;
+}
+
+/*------------------------------------------------------------------------------------*/
+/*함수 : free_SYMTAB*/
+/*목적 : SYMTAB에 할당되어 있는 데이터를 해제하는 함수*/
+/*리턴값 : 없음*/
+/*------------------------------------------------------------------------------------*/
+void free_SYMTAB(SYM_node *head) {
+    SYM_node *cur_node = head;
+    SYM_node *pre_node = NULL;
+
+    for (; cur_node; pre_node = cur_node, cur_node = cur_node->nxt) {
+        free(pre_node);
+    }
+    head = NULL;
+}
+

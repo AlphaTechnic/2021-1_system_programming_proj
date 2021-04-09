@@ -60,12 +60,13 @@ func_option IS_COMMA;
 /* 함수 원형 */
 int get_dx_to_nxt_token(char *start_ptr);
 int hexstr_to_decint(char *hexstr);
+int hash_func(char *string, int max_hash_size);
 INSTRUCTION line_split(char *line, char *LABEL, char *MNEMONIC, char *OP1, char *OP2);
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2);
 INSTRUCTION get_instruction(char *mnemonic);
-int get_byte_size(char *constant);
+int get_byte_size(char *BYTE_operand);
 OK_or_ERR file_open(char* filename, FILE** fp_itm, FILE** fp_lst, FILE** fp_obj);
 REG_num get_REG_num(char *REG);
-int hash_func(char *string, int max_hash_size);
+
 
 #endif //SP_PROJ1_UTILS_H
