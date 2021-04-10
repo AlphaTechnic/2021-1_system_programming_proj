@@ -458,7 +458,7 @@ OK_or_ERR make_obj_code(char *obj_code, int PC_val, char *MNEMONIC, char *OP1, c
     else if (strcmp(opcode_memonic_map_node->format, "3/4") == 0) format = 3;
     else if (strcmp(opcode_memonic_map_node->format, "2") == 0) format = 2;
     else if (strcmp(opcode_memonic_map_node->format, "1") == 0) format = 1;
-    PC_val += format;
+    PC_val += format;  // 현재 line의 format을 안다면, PC 값을 알 수가 있다.
 
     REG_num REG1, REG2;
     switch (format) {

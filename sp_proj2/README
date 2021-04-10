@@ -1,0 +1,10 @@
++---------------------------------------------------------------------+
+
+    HOW TO EXECUTE
+    1. Enter the 'make' command to compile.
+       Then, the '20121277.out' executable file is created.
+    2. Enter the './20140825.out' command to run the '20121277.out' file.
+    3. If you want to delete the object file and the executable file,
+       run the 'make clean' command.
+
++---------------------------------------------------------------------+
