@@ -30,7 +30,7 @@ OPCODE_MNEMONIC_MAP* HASH_TABLE[MAX_HASHTABLE_SIZE];
 
 /* 함수 원형 */
 int get_opcode(char *mnemonic);
-OPCODE_MNEMONIC_MAP *get_opcode_or_NULL(char *mnemonic);
+OPCODE_MNEMONIC_MAP *get_opcode2(char *mnemonic);
 void init_hash_table(char *filename);
 void opcodelist();
 void free_hash_table();

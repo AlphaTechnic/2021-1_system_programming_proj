@@ -171,7 +171,7 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
         else
             strcpy(mnemonic_refined, MNEMONIC);
 
-        if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode_or_NULL(mnemonic_refined)) != NULL) {
+        if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode2(mnemonic_refined)) != NULL) {
             if (strcmp(opcode_mnemonic_map_node->format, "3/4") == 0) {
                 if (MNEMONIC[0] == '+') dl = 4;
                 else dl = 3;
@@ -323,7 +323,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         else
             strcpy(mnemonic_refined, MNEMONIC);
 
-        if (type == _OPERATION && get_opcode_or_NULL(mnemonic_refined) != NULL) {
+        if (type == _OPERATION && get_opcode2(mnemonic_refined) != NULL) {
             state = make_obj_code(obj_code, LOCCTR, MNEMONIC, OP1, OP2, STARTING_ADDR);
             if (state != OK) {
                 printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
@@ -452,7 +452,7 @@ OK_or_ERR make_obj_code(char *obj_code, int PC_val, char *MNEMONIC, char *OP1, c
         strcpy(mnemonic_refined, MNEMONIC);
         e = 0;
     }
-    opcode_memonic_map_node = get_opcode_or_NULL(mnemonic_refined);
+    opcode_memonic_map_node = get_opcode2(mnemonic_refined);
 
     if (e == 1) format = 4;
     else if (strcmp(opcode_memonic_map_node->format, "3/4") == 0) format = 3;
@@ -703,3 +703,4 @@ void free_SYMTAB(SYM_node *head) {
     }
     head = NULL;
 }
+
