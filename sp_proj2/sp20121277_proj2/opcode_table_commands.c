@@ -31,7 +31,7 @@ void init_hash_table(char *filename) {
 /*------------------------------------------------------------------------------------*/
 /*함수 : get_opcode*/
 /*목적 : mnemonic을 입력 받아 해당 mnemonic에 맞는 opcode를 알려준다.*/
-/*리턴값 : OK - 성공인 경우, ERR - 에러인 경*/
+/*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
 int get_opcode(char *mnemonic) {
     const int OK = 1;
@@ -49,11 +49,11 @@ int get_opcode(char *mnemonic) {
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : */
-/*목적 : */
-/*리턴값 : */
+/*함수 : get_opcode_or_NULL*/
+/*목적 : 주어진 mnemonic에 맞는 opcode를 return하는 함수이다*/
+/*리턴값 : 주어진 mnemonic이 opcode table에 있다면 해당 node를 리턴,    없다면 NULL을 리턴*/
 /*------------------------------------------------------------------------------------*/
-OPCODE_MNEMONIC_MAP *get_opcode2(char *mnemonic) {
+OPCODE_MNEMONIC_MAP *get_opcode_or_NULL(char *mnemonic) {
     OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic, MAX_HASHTABLE_SIZE)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {
