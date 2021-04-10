@@ -703,4 +703,3 @@ void free_SYMTAB(SYM_node *head) {
     }
     head = NULL;
 }
-
