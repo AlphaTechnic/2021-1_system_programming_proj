@@ -3,8 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=clion
 
 test/
-sp_proj2_ref/
-sp_proj2_tmp/
+sp_proj3_ref/
 dirent.h
 .idea/
 .DS_Store
