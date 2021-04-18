@@ -12,7 +12,10 @@
 OK_or_ERR assemble(char *filename) {
     FILE *fp = fopen(filename, "r");
     DIR *dir = opendir(filename);
-    if (!fp) return FILE_ERR;
+    if (!fp) {
+        printf("There's no such file!\n");
+        return FILE_ERR;
+    }
     if (dir) return FILE_ERR;
 
     char *pure_filename, *extension;
@@ -23,11 +26,13 @@ OK_or_ERR assemble(char *filename) {
     strcpy(tmp, filename);
     pure_filename = strtok(tmp, ".");
     if (!pure_filename) {
+        printf("File name err!\n");
         fclose(fp);
         return FILE_ERR;
     }
     extension = strtok(NULL, "");
     if (strcmp(extension, "asm") != 0) {
+        printf("File extension err!\n");
         fclose(fp);
         return FILE_ERR;
     }
@@ -110,20 +115,13 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
 
     // END type의 line이 나올때까지 계속 명령을 읽어들이고 parsing을 수행한다.
     while (1) {
-        if (feof(fp)) {
-            printf("Error! Check line number \"%d\"\n", (LINE_NUM + 1) * LINE_NUM_SCALE);
-            ////******************* 여기서 itm 파일 삭제 *******************///////////
-            fclose(fp_itm);
-            remove(filename_itm);
-            return ASSEMBLY_CODE_ERR;
-
-        }
         // 무한loop에 빠지지 않도록 line을 충분히 많이 읽어들였음에도, END symbol을 만나지 않았다면, 오류를 return
         if (LINE_NUM++ >= MAX_LINE_NUM) {
             printf("Err! There's no 'END' pseudo instruction!\n");
+            fclose(fp_itm);
+            remove(filename_itm);
             return ASSEMBLY_CODE_ERR;
         }
-
         if (type == _END) {
             // itm 파일에 기록
             fprintf(fp_itm, "%04X %-10s %-10s %s %s\n", LOCCTR, LABEL, MNEMONIC, OP1, OP2);
@@ -133,6 +131,14 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
             fclose(fp_itm);
             *PROGRAM_SIZE = LOCCTR - STARTING_ADDR;
             break;
+        }
+        if (feof(fp)) {
+            printf("Error! Check line number \"%d\"\n", (LINE_NUM + 1) * LINE_NUM_SCALE);
+            ////******************* 여기서 itm 파일 삭제 *******************///////////
+            fclose(fp_itm);
+            remove(filename_itm);
+            return ASSEMBLY_CODE_ERR;
+
         }
         if (type == _COMMENT) {
             while (type == _COMMENT) {
@@ -262,16 +268,6 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
     int cnt = 0;
     while (1) {
         cnt++;
-        if (feof(fp_itm)) {
-            printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
-            ////******************* 여기서 파일 닫고 itm, obj, lsm 파일 삭제 *******************///////////
-            fclose(fp_obj); fclose(fp_lst); fclose(fp_itm);
-            char filename_itm[NAME_LEN]; char filename_lst[NAME_LEN]; char filename_obj[NAME_LEN];
-            strcpy(filename_itm, filename); strcpy(filename_lst, filename); strcpy(filename_obj, filename);
-            strcat(filename_itm, ".itm"); strcat(filename_lst, ".lst"); strcat(filename_obj, ".obj");
-            remove(filename_itm); remove(filename_lst); remove(filename_obj);
-            return ASSEMBLY_CODE_ERR;
-        }
         if (type == _END) {
             // line byte size를 T 레코드에 기록
             char line_byte_size[3];
@@ -301,7 +297,16 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
             remove(filename_itm);
             break;
         }
-
+        if (feof(fp_itm)) {
+            printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
+            ////******************* 여기서 파일 닫고 itm, obj, lsm 파일 삭제 *******************///////////
+            fclose(fp_obj); fclose(fp_lst); fclose(fp_itm);
+            char filename_itm[NAME_LEN]; char filename_lst[NAME_LEN]; char filename_obj[NAME_LEN];
+            strcpy(filename_itm, filename); strcpy(filename_lst, filename); strcpy(filename_obj, filename);
+            strcat(filename_itm, ".itm"); strcat(filename_lst, ".lst"); strcat(filename_obj, ".obj");
+            remove(filename_itm); remove(filename_lst); remove(filename_obj);
+            return ASSEMBLY_CODE_ERR;
+        }
         if (type == _COMMENT) {
             while (type == _COMMENT) {
                 strcpy(obj_code, "\0");
@@ -340,7 +345,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
             if (OP1[0] == 'C') {
                 char characters[OPERAND_LEN];
                 strcpy(characters, OP1);
-                char hexstr[3];
+                char hexstr[10];
                 char *ptr = strtok(characters, " C'`");
                 for (int i = 0; i < (int) strlen(ptr); i++) {
                     sprintf(hexstr, "%02X", (int) *(ptr + i));
