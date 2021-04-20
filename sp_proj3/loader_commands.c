@@ -15,6 +15,27 @@ OK_or_ERR loader(char filename){
 void load_pass1(FILE *fp){
     char *ptr;
     char line[LINE_LEN];
+    char cs_name[LINE_LEN];
+    char addr_str[LINE_LEN];
+    int addr_int;
 
-    //
+    while(!feof(fp)){
+        fgets(fp, LINE_LEN, line);
+        if (line[0] == 'H'){
+            // get CS name
+            ptr = strtok(line, " ");
+            ptr ++;
+            strcpy(cs_name, ptr);
+            ptr = strtok(NULL, " ");
+
+            // get starting addr
+            strncpy(addr_str, ptr, 2*3);
+            addr_str[2*3] = '\0';
+            addr_int = hexstr_to_decint(addr_str);
+
+            TOTAL_LEN += CS_LEN;
+            printf("%-7s  %-7s  %04X     %04X   \n", cs_name, " ", CS_ADDR + addr_int, CS_LEN);
+        }
+
+    }
 }

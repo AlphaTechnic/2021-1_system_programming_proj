@@ -7,6 +7,7 @@
 
 #include "memory_commands.h"
 #include "utils.h"
+#include "assembler_commands.h"
 
 
 #define SYMBOL_LEN 10
@@ -30,8 +31,8 @@ int bp_visited;
 int PROG_ADDR;
 int CS_ADDR;
 int EXEC_ADDR;
-int CS_LTH;
-int TOTAL_LTH;
+int CS_LEN;
+int TOTAL_LEN;
 
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H
