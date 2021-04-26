@@ -69,3 +69,13 @@ void load_pass1(FILE *fp){
         }
     }
 }
+
+void load_pass2(FILE *fp){
+    char *ptr;
+    char line[MAX_LINE_NUM];
+    int addr;
+
+    while (!feof(fp)){
+        fgets(fp, LINE_LEN, line);
+    }
+}
