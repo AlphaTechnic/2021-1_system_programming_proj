@@ -108,26 +108,26 @@ void print_memory(int start, int end) {
 /*리턴값 : OK - 성공인 경우, COMMA_ERR - ','에 문제가 있는 에러인 경우, RANGE_ERR - 인자에 문제가 있는 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
 OK_or_ERR edit(char *addr_hexstr, char *val_hexstr) {
-    int addr_dec, val_dec;
+    int addr_int, val_int;
     // hexstr to dec
     if (addr_hexstr[strlen(addr_hexstr) - 1] != ',') {
         printf("comma err! (use ',' between start address and end address)\n");
         return COMMA_ERR;
     }
     addr_hexstr[strlen(addr_hexstr) - 1] = '\0';
-    addr_dec = hexstr_to_decint(addr_hexstr);
-    val_dec = hexstr_to_decint(val_hexstr);
+    addr_int = hexstr_to_decint(addr_hexstr);
+    val_int = hexstr_to_decint(val_hexstr);
 
     // validate
-    if (addr_dec < 0 || addr_dec >= MEM_SIZE) {
+    if (addr_int < 0 || addr_int >= MEM_SIZE) {
         printf("range err!\n");
         return RANGE_ERR;
     }
-    if (val_dec < 0 || val_dec >= ONE_BYTE_SIZE) {
+    if (val_int < 0 || val_int >= ONE_BYTE_SIZE) {
         printf("range err!\n");
         return RANGE_ERR;
     }
-    MEMORY[addr_dec] = val_dec;
+    MEMORY[addr_int] = val_int;
     return OK;
 }
 

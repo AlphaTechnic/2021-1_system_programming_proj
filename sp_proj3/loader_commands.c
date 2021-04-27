@@ -4,6 +4,23 @@
 
 #include "loader_commands.h"
 
+OK_or_ERR prog_addr(char* addr_hexstr){
+    int addr_int = -1;
+
+    addr_int = hexstr_to_decint(addr_hexstr);
+    if (addr_int == RANGE_ERR){ // 적절하지 않은 형식의 address가 입력된 경우
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+    if (addr_int < 0 || addr_int >= MEM_SIZE) { // 입력된 address가 메모리 주소 범위를 초과한 경우
+        printf("range err!\n");
+        return RANGE_ERR;
+    }
+    PROG_ADDR = addr_int;
+    REG[regPC] = addr_int;
+    return OK;
+}
+
 OK_or_ERR loader(char filename){
     // print loadmap
     printf("%-7s  %-7s  %-7s  %-7s\n", "control", "symbol", "address", "length");

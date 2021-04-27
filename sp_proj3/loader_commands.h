@@ -9,7 +9,6 @@
 #include "utils.h"
 #include "assembler_commands.h"
 
-
 #define SYMBOL_LEN 10
 #define HASH_LEN 20
 
@@ -28,11 +27,16 @@ BP_NODE *BPTAB;
 int BP_CHK[MEM_SIZE];
 int bp_visited;
 
+int REG[REG_NUM + 1];
 int PROG_ADDR;
 int CS_ADDR;
 int EXEC_ADDR;
 int CS_LEN;
 int TOTAL_LEN;
 
+OK_or_ERR prog_addr(char* addr_hexstr);
+OK_or_ERR loader(char filename);
+void load_pass1(FILE *fp);
+void load_pass2(FILE *fp);
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

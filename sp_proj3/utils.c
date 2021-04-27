@@ -45,7 +45,7 @@ int hexstr_to_decint(char *hexstr) {
         if (hexstr[i] >= '0' && hexstr[i] <= '9') cur = hexstr[i] - '0';
         else if (hexstr[i] >= 'A' && hexstr[i] <= 'F') cur = hexstr[i] - 'A' + 10;
         else if (hexstr[i] >= 'a' && hexstr[i] <= 'f') cur = hexstr[i] - 'a' + 10;
-        else return -1; // contain wrong hexstr symbol
+        else return RANGE_ERR; // contain wrong hexstr symbol
 
         res += cur * scale;
         scale *= 16;

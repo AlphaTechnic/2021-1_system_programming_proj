@@ -13,6 +13,7 @@
 #define LINE_LEN 100
 #define NAME_LEN 100
 #define MAX_HASH_SIZE 20
+#define REG_NUM 9
 
 typedef enum{
     ASSEMBLY_CODE_ERR = -4,
