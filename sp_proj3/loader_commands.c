@@ -42,7 +42,7 @@ void load_pass1(FILE *fp) {
             char CS_start_addr_hexstr[STR_ADDR_LEN];
             int CS_start_addr_int;
 
-            ptr = strtok(line, " ");
+            ptr = strtok(line, " \r");
             ptr++;
             if (strlen(ptr) > 6) {
                 strncpy(cs_name, ptr, 6);
@@ -51,7 +51,7 @@ void load_pass1(FILE *fp) {
             }
             else {
                 strcpy(cs_name, ptr);
-                ptr = strtok(NULL, " ");
+                ptr = strtok(NULL, " \r");
             }
 
             // get starting address
@@ -72,7 +72,7 @@ void load_pass1(FILE *fp) {
             char sym_addr_hexstr[STR_ADDR_LEN];
             int sym_addr_int;
 
-            ptr = strtok(line, " ");
+            ptr = strtok(line, " \r");
             ptr++;
             while (1) {
                 // get name of symbol
@@ -83,7 +83,7 @@ void load_pass1(FILE *fp) {
                 }
                 else {
                     strcpy(sym_name, ptr);
-                    ptr = strtok(NULL, " ");
+                    ptr = strtok(NULL, " \r");
                 }
 
                 // get address of symbol
@@ -107,16 +107,13 @@ void load_pass2(FILE *fp) {
     char *ptr;
     char line[MAX_LINE_NUM];
     int addr_int;
-
     int rf_table[MAX_RF_NUM];
-    int rf_ind;
-
 
     while (!feof(fp)) {
         fgets(fp, LINE_LEN, line);
         if (line[0] == 'H') {
             char cs_name[NAME_LEN];
-            ptr = strtok(line, " ");
+            ptr = strtok(line, " \r");
             strcpy(cs_name, ptr + 1);
 
             ES_NODE *cs_node = find_ESNODE_or_NULL(cs_name);
@@ -126,10 +123,11 @@ void load_pass2(FILE *fp) {
         else if (line[0] == 'R') {
             char rf_ind_hexstr[NAME_LEN];
             char es_name[NAME_LEN];
-            ptr = strtok(line, " ");
+            int rf_ind;
+            ptr = strtok(line, " \r");
             ptr++;
 
-            for (; ptr; ptr = strtok(NULL, " ")) {
+            for (; ptr; ptr = strtok(NULL, " \r")) {
                 strncpy(rf_ind_hexstr, ptr, 2);
                 es_name[2] = '\0';
                 rf_ind = hexstr_to_decint(rf_ind_hexstr);
@@ -148,7 +146,7 @@ void load_pass2(FILE *fp) {
             int byte_int;
 
             // get "obj_code가 올라갈 MEM의 시작주소"
-            ptr = strtok(line, " ");
+            ptr = strtok(line, " \r");
             ptr++;
             strcpy(starting_addr_hexstr, ptr + 2);
             starting_addr_hexstr[6] = '\0';
@@ -175,8 +173,15 @@ void load_pass2(FILE *fp) {
         else if (line[0] == 'M'){
             char loc_to_be_modified_hexstr[STR_ADDR_LEN];
             char len_to_be_modified_hexstr[STR_ADDR_LEN];
+            char half_bytes_to_be_modified_str[STR_ADDR_LEN];
+            char rf_ind_str[STR_ADDR_LEN];
             int loc_to_be_modified_int;
-            char len_to_be_modified_int;
+            int len_to_be_modified_int;
+            int half_byte_to_be_modified_int;
+            int rf_ind_int;
+            int dx; // modify를 적용하는 양
+            ES_NODE *es_node;
+
 
             // get "modified될 명령의 시작 위치"
             ptr = line + 1;
@@ -186,9 +191,66 @@ void load_pass2(FILE *fp) {
             ptr += 6;
 
             // get "수정될 halfbyte의 길이"
-            strncpy(loc_to_be_modified_hexstr, ptr, 2);
-            loc_to_be_modified_hexstr[2] = '\0';
+            strncpy(len_to_be_modified_hexstr, ptr, 2);
+            len_to_be_modified_hexstr[2] = '\0';
+            len_to_be_modified_int = hexstr_to_decint(len_to_be_modified_hexstr);
+            ptr += 2;
 
+            dx = 0;
+            if(ptr){
+                char rf_ind_or_rf_name[STR_ADDR_LEN];
+                strcpy(rf_ind_or_rf_name, ptr + 1);
+                strtok(rf_ind_or_rf_name, " \r");
+                rf_ind_int = hexstr_to_decint(rf_ind_or_rf_name);
+                if (rf_ind_int != RANGE_ERR){ // rf number를 이용한 modify가 적혀있는 경우(ex> +02)
+                    dx = rf_table[rf_ind_int];
+                }
+                else{ // rf name을 이용한 modify가 적혀있는 경우 (ex> +LISTB)
+                    es_node = find_ESNODE_or_NULL(rf_ind_or_rf_name);
+                    dx = es_node->addr;
+                }
+                if (*ptr == '-') dx = -dx;
+            }
+
+            // 수정할 obj code를 가져온다.
+            char tmp[STR_ADDR_LEN];
+            for (int i=0; i<3; i++){
+                sprintf(tmp, "%02X", MEMORY[loc_to_be_modified_int + i]);
+                strcat(half_bytes_to_be_modified_str, tmp);
+            }
+
+            // dx 만큼 modified된 address 생성
+            int addr_modified;
+            if (len_to_be_modified_int == 5){
+                addr_modified = hexstr_to_decint(half_bytes_to_be_modified_str + 1) + dx;
+                sprintf(tmp, "%02X", MEMORY[loc_to_be_modified_int]);
+                sprintf(half_bytes_to_be_modified_str, "%c%05X", tmp[0], addr_modified);
+            }
+            else if (len_to_be_modified_int == 6){
+                addr_modified = twos_complement_str_to_decint(half_bytes_to_be_modified_str); + dx;
+                sprintf(half_bytes_to_be_modified_str, "%06X", addr_modified);
+                if (addr_modified < 0) {
+                    strncpy(half_bytes_to_be_modified_str, half_bytes_to_be_modified_str + 2, 6);
+                    half_bytes_to_be_modified_str[6] = '\0';
+                }
+            }
+
+            for (int i=0; i<3; i++){
+                int byte_val;
+                strncpy(tmp, half_bytes_to_be_modified_str + 2*i, 2);
+                tmp[2] = '\0';
+                byte_val = hexstr_to_decint(tmp);
+                MEMORY[loc_to_be_modified_int + i] = byte_val;
+            }
+        }
+        else if (line[0] == 'E'){
+            if (line[1] != '\0'){
+                char first_instrcution_addr_str;
+                int first_instruction_addr_int;
+                strncpy(first_instrcution_addr_str, line+1, 6);
+                first_instruction_addr_int = hexstr_to_decint(first_instrcution_addr_str);
+                EXEC_ADDR = CS_ADDR + first_instruction_addr_int;
+            }
         }
     }
 }

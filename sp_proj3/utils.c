@@ -54,6 +54,25 @@ int hexstr_to_decint(char *hexstr) {
 }
 
 /*------------------------------------------------------------------------------------*/
+/*함수 : twos_complement_str_to_decint*/
+/*목적 : 문자열 hexstr을 signed 32bit hexstr로 간주하고, 조응하는 dec int값으로 변환한다.*/
+/*리턴값 : res - 문자열 hexstr을 int형 signed 32bit 표현으로 바꾼 결과*/
+/*------------------------------------------------------------------------------------*/
+int twos_complement_str_to_decint(char *hexstr) {
+    int res;
+    char signed_32bit_hexstr[STR_ADDR_LEN] = "FF";
+
+    res = hexstr_to_decint(hexstr);
+    if (res == RANGE_ERR) return RANGE_ERR; // range err!
+    if (hexstr[0] >= 48 && hexstr[0] <= 55) return res; // ascii('0') == 48 and ascii('7') == 55
+
+    // sign bit가 음수라면, 2의 보수표현의 결과(음수)를 return
+    strcat(signed_32bit_hexstr, hexstr);
+    res = strtol(signed_32bit_hexstr, NULL, 16);
+    return res;
+}
+
+/*------------------------------------------------------------------------------------*/
 /*함수 : hash_func*/
 /*목적 : string을 입력 받아 이를 0부터 19까지 20개의 숫자에 mapping한다. 입력 받은 명령어를 구성하는 모든 문자의
  * ASCII  값을 더하여, 20으로 나눈다.*/

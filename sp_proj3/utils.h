@@ -7,6 +7,7 @@
 
 /* 포함되는 파일 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -62,6 +63,7 @@ func_option IS_COMMA;
 /* 함수 원형 */
 int get_dx_to_nxt_token(char *start_ptr);
 int hexstr_to_decint(char *hexstr);
+int twos_complement_str_to_decint(char *hexstr);
 int hash_func(char *string, int max_hash_size);
 INSTRUCTION line_split(char *line, char *LABEL, char *MNEMONIC, char *OP1, char *OP2);
 INSTRUCTION line_split2(char *line, int *LOCCTR, char *LABEL, char *MNEMONIC, char *OP1, char *OP2);
