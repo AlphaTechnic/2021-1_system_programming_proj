@@ -13,7 +13,7 @@
 #define HASH_LEN 20
 
 typedef struct ES_NODE{
-    char symbol_name[SYMBOL_LEN];
+    char name[SYMBOL_LEN];
     int addr;
     struct ES_NODE* nxt;
 }ES_NODE;
