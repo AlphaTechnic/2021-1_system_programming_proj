@@ -32,30 +32,46 @@ OK_or_ERR loader(char filename){
 void load_pass1(FILE *fp){
     char *ptr;
     char line[LINE_LEN];
-    char addr_str[LINE_LEN];
-    int addr_int;
+
 
     while(!feof(fp)){
         fgets(fp, LINE_LEN, line);
         if (line[0] == 'H'){
             // get CS name
-            char cs_name[LINE_LEN];
+            char cs_name[SYMBOL_LEN];
+            char CS_start_addr_str[STR_ADDR_LEN];
+            int CS_start_addr_int;
 
             ptr = strtok(line, " ");
             ptr++;
-            strcpy(cs_name, ptr);
-            ptr = strtok(NULL, " ");
+            if (strlen(ptr) > 6){
+                strncpy(cs_name, ptr, 6);
+                cs_name[6] = '\0';
+                ptr += 6;
+            }
+            else{
+                strcpy(cs_name, ptr);
+                ptr = strtok(NULL, " ");
+            }
 
             // get starting addr
-            strncpy(addr_str, ptr, 6);
-            addr_str[6] = '\0';
-            addr_int = hexstr_to_decint(addr_str);
+            strncpy(CS_start_addr_str, ptr, 6);
+            CS_start_addr_str[6] = '\0';
+            CS_start_addr_int = hexstr_to_decint(CS_start_addr_str);
 
+            //************************여기서 es_table에 push
+
+            // get control section 길이
+            strncpy(CS_start_addr_str, ptr + 6, 3);
+            CS_LEN = hexstr_to_decint(CS_start_addr_str);
             TOTAL_LEN += CS_LEN;
-            printf("%-7s  %-7s  %04X     %04X   \n", cs_name, " ", CS_ADDR + addr_int, CS_LEN);
+
+            printf("%-7s  %-7s  %04X     %04X   \n", cs_name, " ", CS_ADDR + CS_start_addr_int, CS_LEN);
         }
         else if (line[0] == 'D'){
-            char symbol_name[LINE_LEN];
+            char symbol_name[SYMBOL_LEN];
+            char sym_addr_str[STR_ADDR_LEN];
+            int sym_addr_int;
 
             ptr = strtok(line, " ");
             ptr++;
@@ -72,13 +88,15 @@ void load_pass1(FILE *fp){
                 }
 
                 // get address of symbol
-                strncpy(addr_str, ptr, 6);
-                addr_str[6] = '\0';
-                addr_int = hexstr_to_decint(addr_str);
+                strncpy(sym_addr_str, ptr, 6);
+                sym_addr_str[6] = '\0';
+                sym_addr_int = hexstr_to_decint(sym_addr_str);
 
-                // es_table에 push
+                //********************** es_table에 push
 
-                printf("%-7s  %-7s  %04X   \n", " ", symbol_name, CS_ADDR + addr_int);
+                printf("%-7s  %-7s  %04X   \n", " ", symbol_name, CS_ADDR + sym_addr_int);
+                ptr += 6;
+                if (*(ptr) == '\0') break;
             }
         }
         else if (line[0] == 'E'){
@@ -90,9 +108,25 @@ void load_pass1(FILE *fp){
 void load_pass2(FILE *fp){
     char *ptr;
     char line[MAX_LINE_NUM];
-    int addr;
+    int addr_int;
+
+    int rf_table;
+    int re
+
 
     while (!feof(fp)){
         fgets(fp, LINE_LEN, line);
+        if (line[0] == 'H'){
+            ptr = strtok(line, " ");
+            strcpy(asjfkadjh, ptr + 1);
+        }
     }
 }
+
+void print_register(void){
+    printf("A : %06X   X : %06X\n", REG[regA], REG[regX]);
+    printf("L : %06X  PC : %06X\n", REG[regL], REG[regPC]);
+    printf("B : %06X   S : %06X\n", REG[regB], REG[regS]);
+    printf("T : %06X\n", REG[regT]);
+}
+

@@ -12,6 +12,7 @@
 
 #define LINE_LEN 100
 #define NAME_LEN 100
+#define STR_ADDR_LEN 10
 #define MAX_HASH_SIZE 20
 #define REG_NUM 9
 
