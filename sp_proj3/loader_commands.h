@@ -25,7 +25,7 @@ typedef struct BP_NODE{
     int addr;
     struct BP_NODE* nxt;
 }BP_NODE;
-BP_NODE *BPTAB;
+BP_NODE *BP_LIST_HEAD;
 int BP_CHK[MEM_SIZE];
 int bp_visited;
 

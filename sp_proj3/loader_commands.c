@@ -47,7 +47,7 @@ OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]) {
 
     // load pass1
     char *obj_file = filenames[1];
-    for (int ind = 2; obj_file != NULL && *obj_file != '\0'; ind++){
+    for (int ind = 2; obj_file != NULL && *obj_file != '\0'; ind++) {
         fp = fopen(obj_file, "r");
         if (!fp) return FILE_ERR;
 
@@ -65,7 +65,7 @@ OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]) {
 
     // load pass2
     obj_file = filenames[1];
-    for (int ind = 2; obj_file != NULL && *obj_file != '\0'; ind++){
+    for (int ind = 2; obj_file != NULL && *obj_file != '\0'; ind++) {
         fp = fopen(obj_file, "r");
         if (!fp) return FILE_ERR;
 
@@ -73,9 +73,10 @@ OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]) {
         fclose(fp);
         obj_file = filenames[ind];
     }
+
     // total len, exec addr
     // reset register
-    for(int i = 0; i < REG_NUM; i++) REG[i] = 0;
+    for (int i = 0; i < REG_NUM; i++) REG[i] = 0;
     REG[regL] = TOTAL_LEN; //////////////////////
     REG[regPC] = FIRST_INSTRUCTION_ADDR;
     bp_visited = 0;
@@ -90,7 +91,7 @@ void load_pass1(FILE *fp) {
 
     while (!feof(fp)) {
         fgets(line, LINE_LEN, fp);
-        if (line[strlen(line)-1]=='\n') line[strlen(line)-1] = '\0';
+        if (line[strlen(line) - 1] == '\n') line[strlen(line) - 1] = '\0';
         if (line[0] == 'H') {
             // get CS name
             char cs_name[SYMBOL_LEN];
@@ -168,7 +169,7 @@ void load_pass2(FILE *fp) {
 
     while (!feof(fp)) {
         fgets(line, LINE_LEN, fp);
-        if (line[strlen(line)-1]=='\n') line[strlen(line)-1] = '\0';
+        if (line[strlen(line) - 1] == '\n') line[strlen(line) - 1] = '\0';
         if (line[0] == 'H') {
             char cs_name[NAME_LEN];
             ptr = strtok(line, " \r");
@@ -197,7 +198,7 @@ void load_pass2(FILE *fp) {
                 }
             }
         }
-        else if (line[0] == 'T'){
+        else if (line[0] == 'T') {
             char starting_addr_hexstr[STR_ADDR_LEN];
             char one_line_T_record_len_hexstr[STR_ADDR_LEN];
             char byte_hexstr[STR_ADDR_LEN];
@@ -219,7 +220,7 @@ void load_pass2(FILE *fp) {
             ptr += 2;
 
             // MEM에 적재
-            for(;REG[regPC] <= one_line_T_record_len_int; MEMORY[REG[regPC]++] = byte_int) {
+            for (; REG[regPC] <= one_line_T_record_len_int; MEMORY[REG[regPC]++] = byte_int) {
                 strncpy(byte_hexstr, ptr, 2);
                 byte_hexstr[2] = '\0';
                 ptr += 2;
@@ -230,7 +231,7 @@ void load_pass2(FILE *fp) {
                 }
             }
         }
-        else if (line[0] == 'M'){
+        else if (line[0] == 'M') {
             char loc_to_be_modified_hexstr[STR_ADDR_LEN];
             char halfbytes_len_to_be_modified_hexstr[STR_ADDR_LEN];
             char half_bytes_to_be_modified_str[STR_ADDR_LEN];
@@ -255,15 +256,15 @@ void load_pass2(FILE *fp) {
             ptr += 2;
 
             dx = 0;
-            if(ptr){
+            if (ptr) {
                 char rf_ind_or_rf_name[STR_ADDR_LEN];
                 strcpy(rf_ind_or_rf_name, ptr + 1);
                 strtok(rf_ind_or_rf_name, " \r");
                 rf_ind_int = hexstr_to_decint(rf_ind_or_rf_name);
-                if (rf_ind_int != RANGE_ERR){ // rf number를 이용한 modify가 적혀있는 경우(ex> +02)
+                if (rf_ind_int != RANGE_ERR) { // rf number를 이용한 modify가 적혀있는 경우(ex> +02)
                     dx = rf_table[rf_ind_int];
                 }
-                else{ // rf name을 이용한 modify가 적혀있는 경우 (ex> +LISTB)
+                else { // rf name을 이용한 modify가 적혀있는 경우 (ex> +LISTB)
                     es_node = find_ESNODE_or_NULL(rf_ind_or_rf_name);
                     dx = es_node->addr;
                 }
@@ -273,39 +274,40 @@ void load_pass2(FILE *fp) {
             // 수정할 obj code를 가져온다.
             char tmp[STR_ADDR_LEN];
             strcpy(half_bytes_to_be_modified_str, "");
-            for (int i=0; i<3; i++){
+            for (int i = 0; i < 3; i++) {
                 sprintf(tmp, "%02X", MEMORY[loc_to_be_modified_int + i]);
                 strcat(half_bytes_to_be_modified_str, tmp);
             }
 
             // dx 만큼 modified된 address 생성
             int addr_modified;
-            if (halfbytes_len_to_be_modified_int == 5){
+            if (halfbytes_len_to_be_modified_int == 5) {
                 addr_modified = hexstr_to_decint(half_bytes_to_be_modified_str + 1) + dx;
                 sprintf(tmp, "%02X", MEMORY[loc_to_be_modified_int]);
                 sprintf(half_bytes_to_be_modified_str, "%c%05X", tmp[0], addr_modified);
             }
-            else if (halfbytes_len_to_be_modified_int == 6){
+            else if (halfbytes_len_to_be_modified_int == 6) {
                 addr_modified = twos_complement_str_to_decint(half_bytes_to_be_modified_str) + dx;
                 sprintf(half_bytes_to_be_modified_str, "%06X", addr_modified);
                 if (addr_modified < 0) {
-                    for (int i = 0; i <= 6; i++) half_bytes_to_be_modified_str[i] = half_bytes_to_be_modified_str[i + 2];
+                    for (int i = 0; i <= 6; i++)
+                        half_bytes_to_be_modified_str[i] = half_bytes_to_be_modified_str[i + 2];
                 }
             }
 
-            for (int i=0; i<3; i++){
+            for (int i = 0; i < 3; i++) {
                 int byte_val;
-                strncpy(tmp, half_bytes_to_be_modified_str + 2*i, 2);
+                strncpy(tmp, half_bytes_to_be_modified_str + 2 * i, 2);
                 tmp[2] = '\0';
                 byte_val = hexstr_to_decint(tmp);
                 MEMORY[loc_to_be_modified_int + i] = byte_val;
             }
         }
-        else if (line[0] == 'E'){
-            if (line[1] != '\0'){
+        else if (line[0] == 'E') {
+            if (line[1] != '\0') {
                 char first_instrcution_addr_str[STR_ADDR_LEN];
                 int first_instruction_addr_int;
-                strncpy(first_instrcution_addr_str, line+1, 6);
+                strncpy(first_instrcution_addr_str, line + 1, 6);
                 first_instruction_addr_int = hexstr_to_decint(first_instrcution_addr_str);
                 FIRST_INSTRUCTION_ADDR = CS_ADDR + first_instruction_addr_int;
                 break;
@@ -314,35 +316,28 @@ void load_pass2(FILE *fp) {
     }
 }
 
-void print_register(void) {
-    printf("A : %06X   X : %06X\n", REG[regA], REG[regX]);
-    printf("L : %06X  PC : %06X\n", REG[regL], REG[regPC]);
-    printf("B : %06X   S : %06X\n", REG[regB], REG[regS]);
-    printf("T : %06X\n", REG[regT]);
-}
-
 // **************ES table***********//
 void push_to_ESTAB(char *es_name, int es_addr) {
     int ind = hash_func(es_name, ESTAB_HASH_SIZE);
     ES_NODE *cur_node = ESTAB[ind];
-    ES_NODE *tar_node = malloc(sizeof(ES_NODE));
+    ES_NODE *new_node = malloc(sizeof(ES_NODE));
 
-    // create node
-    strcpy(tar_node->name, es_name);
-    tar_node->addr = es_addr;
-    tar_node->nxt = NULL;
+    // create new node
+    strcpy(new_node->name, es_name);
+    new_node->addr = es_addr;
+    new_node->nxt = NULL;
 
     if (cur_node == NULL) {
-        ESTAB[ind] = tar_node;
+        ESTAB[ind] = new_node;
         return;
     }
     for (; cur_node->nxt; cur_node = cur_node->nxt) {
         if (strcmp(cur_node->name, es_name) == 0) { // err!
-            free(tar_node);
+            free(new_node);
             return;
         }
     }
-    cur_node->nxt = tar_node;
+    cur_node->nxt = new_node;
 }
 
 ES_NODE *find_ESNODE_or_NULL(char *es_name) {
@@ -354,4 +349,72 @@ ES_NODE *find_ESNODE_or_NULL(char *es_name) {
         }
     }
     return NULL;
+}
+
+OK_or_ERR bp_command(int num_of_tokens, char *addr_hexstr_or_claer_str) {
+    if (num_of_tokens == 1) {
+        printf("\t\tbreakpoint\n");
+        printf("\t\t----------\n");
+        for (BP_NODE *cur_node = BP_LIST_HEAD; cur_node; cur_node = cur_node->nxt) printf("\t\t%X\n", cur_node->addr);
+    }
+    else if (num_of_tokens == 2 && strcmp(addr_hexstr_or_claer_str, "clear") == 0) {
+        BP_NODE *cur_node, *pre_node;
+        for (cur_node = BP_LIST_HEAD, pre_node = NULL; cur_node;
+             pre_node = cur_node, cur_node = cur_node->nxt, free(pre_node)) {
+            BP_CHK[cur_node->addr] = 0;
+        }
+        BP_LIST_HEAD = NULL;
+        printf("\t\t[ok] clear all breakpoints\n");
+    }
+    else if (num_of_tokens == 2) {
+        int addr_int = hexstr_to_decint(addr_hexstr_or_claer_str);
+        if (addr_int < 0) return RANGE_ERR;
+        if (addr_int > MEM_SIZE) return RANGE_ERR;
+
+        // push to BPTABLE*************************
+        BP_CHK[addr_int] = 1;
+        printf("\t\t[ok] create breakpoint %s\n", addr_hexstr_or_claer_str);
+    }
+    else return RANGE_ERR;
+}
+
+void push_to_BPTAB(int addr) {
+    BP_NODE *cur_node = BP_LIST_HEAD;
+    BP_NODE *new_node = malloc(sizeof(BP_NODE));
+
+    // create new node
+    new_node->addr = addr;
+    new_node->nxt = NULL;
+
+    if (BP_LIST_HEAD == NULL) {
+        BP_LIST_HEAD = new_node;
+        return;
+    }
+    for (; cur_node->nxt; cur_node = cur_node->nxt);
+    cur_node->nxt = new_node;
+}
+
+OK_or_ERR run(){
+    int END = PROG_ADDR + CS_LEN;
+    while(REG[regPC] < END){
+        if (BP_CHK[REG[regPC]] && !bp_visited){
+            // print register
+            printf("A : %06X   X : %06X\n", REG[regA], REG[regX]);
+            printf("L : %06X  PC : %06X\n", REG[regL], REG[regPC]);
+            printf("B : %06X   S : %06X\n", REG[regB], REG[regS]);
+            printf("T : %06X\n", REG[regT]);
+            printf("\t\tStop at checkpoint[%X]\n", REG[regPC]);
+            bp_visited = 1;
+            return OK;
+        }
+        // 메모리의 명령을 수행******************
+        bp_visited = 0;
+    }
+    // print register
+    printf("A : %06X   X : %06X\n", REG[regA], REG[regX]);
+    printf("L : %06X  PC : %06X\n", REG[regL], REG[regPC]);
+    printf("B : %06X   S : %06X\n", REG[regB], REG[regS]);
+    printf("T : %06X\n", REG[regT]);
+    printf("\t\tEnd Program\n");
+    return OK;
 }
