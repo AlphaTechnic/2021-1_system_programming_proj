@@ -9,7 +9,8 @@
 #include "utils.h"
 #include "assembler_commands.h"
 
-#define SYMBOL_LEN 10
+#define MAX_FILES_NUM 5
+#define MAX_FILENAME_LEN 15
 #define ESTAB_HASH_SIZE 20
 #define MAX_RF_NUM 100
 
@@ -31,17 +32,16 @@ int bp_visited;
 int REG[REG_NUM + 1];
 int PROG_ADDR;
 int CS_ADDR;
-int EXEC_ADDR;
+int FIRST_INSTRUCTION_ADDR;
 int CS_LEN;
 int TOTAL_LEN;
 
-OK_or_ERR prog_addr(char* addr_hexstr);
-OK_or_ERR loader(char filename);
+OK_or_ERR set_PROGADDR(char* addr_hexstr);
+OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]);
 void load_pass1(FILE *fp);
 void load_pass2(FILE *fp);
 
 void push_to_ESTAB(char *es_name, int es_addr);
 ES_NODE *find_ESNODE_or_NULL(char *es_name);
-void free_ESTAB();
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

@@ -16,7 +16,7 @@
 #define ONE_BYTE_SIZE 256 // FF(hex) == 255(dec)
 
 /* 전역 변수 */
-char MEMORY[MEM_SIZE];
+int MEMORY[MEM_SIZE];
 int LAST_ADDR;
 
 /* 함수 원형 */

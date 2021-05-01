@@ -15,11 +15,12 @@
 #include "memory_commands.h"
 #include "opcode_table_commands.h"
 #include "assembler_commands.h"
+#include "loader_commands.h"
 
 /* 정의되는 상수 */
 #define MAX_INPUT_LEN 100
 #define MAXNUM_OF_TOKEN 5
-#define MAX_TOKEN_LEN 10
+#define MAX_TOKEN_LEN 15
 
 typedef enum SUCCESS_or_FAIL {
     FAIL = 0,
@@ -55,7 +56,13 @@ typedef enum COMMAND {
     ASSEMBLE_CMD,
     SYMBOL_CMD,
 
-    // 13 : INPUT error
+    // 13, 14, 15, 16 : loader commands
+    PROGADDR_CMD,
+    LOADER_CMD,
+    BP_CMD,
+    RUN_CMD,
+
+    // 17 : INPUT error
     WRONG_CMD
 } COMMAND;
 

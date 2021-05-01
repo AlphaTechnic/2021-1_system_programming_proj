@@ -130,6 +130,11 @@ COMMAND get_command() {
     else if (strcmp(cmd, "assemble") == 0 && NUM_OF_TOKENS == 2) return ASSEMBLE_CMD;
     else if (strcmp(cmd, "symbol") == 0 && NUM_OF_TOKENS == 1) return SYMBOL_CMD;
 
+        // loader commands
+    else if (strcmp(cmd, "progaddr") == 0 && NUM_OF_TOKENS == 2) return PROGADDR_CMD;
+    else if (strcmp(cmd, "loader") == 0 && NUM_OF_TOKENS == 4) return LOADER_CMD;
+    else if (strcmp(cmd, "bp") == 0 && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 2)) return BP_CMD;
+    else if (strcmp(cmd, "run") == 0 && NUM_OF_TOKENS == 1) return RUN_CMD;
     return WRONG_CMD;
 }
 
@@ -190,6 +195,19 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
         case SYMBOL_CMD:
             print_symbols();
             break;
+
+        // loader commands
+        case PROGADDR_CMD:
+            RESULT = set_PROGADDR(INPUT_SPLIT[1]);
+            break;
+        case LOADER_CMD:
+            RESULT = loader(INPUT_SPLIT);
+            break;
+        case BP_CMD:
+            break;
+        case RUN_CMD:
+            break;
+
         default:// WRONG_CMD
             printf("COMMAND err!\n");
             break;
