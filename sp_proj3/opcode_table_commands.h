@@ -31,8 +31,9 @@ OP_NODE* OPTAB_by_mnemonic[MAX_HASHTABLE_SIZE];
 OP_NODE* OPTAB_by_opcode[MAX_HASHTABLE_SIZE];
 
 /* 함수 원형 */
-OK_or_ERR get_opcode_by_mnemonic(char *mnemonic);
+OK_or_ERR print_opcode_by_mnemonic(char *mnemonic);
 OP_NODE *get_opcode_or_NULL_by_mnemonic(char *mnemonic);
+OP_NODE *get_opcode_or_NULL_by_opcode(int opcode);
 void init_OPTAB(char *filename);
 void opcodelist();
 void free_OPTAB();

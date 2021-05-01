@@ -18,6 +18,7 @@
 #define REG_NUM 9
 
 typedef enum{
+    OBJ_CODE_ERR = -5,
     ASSEMBLY_CODE_ERR = -4,
     FILE_ERR,
     RANGE_ERR,

@@ -418,3 +418,66 @@ OK_or_ERR run(){
     printf("\t\tEnd Program\n");
     return OK;
 }
+
+OK_or_ERR execute_instructions(){
+    int opcode, format;
+    int reg1, reg2;
+    int disp = 0;
+    int ni, x, b, p, e;
+
+    int tar_addr = 0;
+    int start_loc = REG[regPC];
+    int operand;
+
+    OP_NODE *op_node;
+
+    // 메모리에서 1 byte 읽어옴.
+    opcode = MEMORY[start_loc];
+    ni = opcode % 4;
+    opcode -= ni;
+    op_node = get_opcode_or_NULL_by_mnemonic(opcode);
+    if (!op_node) return OBJ_CODE_ERR;
+
+    // 해당 mnemonic의 format을 알아냄.
+    if(*(op_node->format) == '1') format = 1;
+    else if(*(op_node->format) == '2') format = 2;
+    else{ // format == 3 또는 format == 4
+        e = (MEMORY[start_loc + 1] & 0b10000) >> 4;
+        if (e == 1) format = 4;
+        else format = 3;
+    }
+    REG[regPC] += format;
+
+    // get operands
+    switch(format){
+        case 2:
+            reg1 = (MEMORY[start_loc + 1] & 0b11110000) >> 4;
+            reg2 = MEMORY[start_loc + 1] & 0b00001111;
+            break;
+        case 3:
+            x = (MEMORY[start_loc+1] & 0b10000000) >> 7;
+            b =  (MEMORY[start_loc+1] & 0b1000000) >> 6;
+            p =   (MEMORY[start_loc+1] & 0b100000) >> 5;
+            disp = ((MEMORY[start_loc+1] & 0x0F) << 8) + MEMORY[start_loc+2];
+            break;
+        case 4:
+            x = (MEMORY[start_loc+1] & 0b10000000) >> 7;
+            b =  (MEMORY[start_loc+1] & 0b1000000) >> 6;
+            p =   (MEMORY[start_loc+1] & 0b100000) >> 5;
+            disp = ((MEMORY[start_loc+1] & 0x0F) << 16) + (MEMORY[start_loc+2] << 8) + MEMORY[start_loc+3];
+            break;
+        default:
+            break;
+    }
+
+    // disp가 음수인 경우, 2의 보수표현 -> int 값으로 가져온다
+    if(format == 3 && (disp & 0x800)) disp = disp | 0xFFFFF000;
+
+    // operand 값 정하기
+    if (format == 3 || format == 4){
+        if (b == 1 && p == 0) tar_addr = REG[regB] + disp; // b-relative addressing
+        else if (b == 0 && p == 1) tar_addr = REG[regPC] + disp; // p-relative addressing
+        else if (b == 0 && p == 0) tar_addr = disp; // direct addressing
+    }
+    if (x == 1) tar_addr += REG[regX];
+}

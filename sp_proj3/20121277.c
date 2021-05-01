@@ -179,7 +179,7 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
 
         // opcode table commands
         case OPCODE_MNEMONIC_CMD:
-            RESULT = get_opcode_by_mnemonic(INPUT_SPLIT[1]);
+            RESULT = print_opcode_by_mnemonic(INPUT_SPLIT[1]);
             break;
         case OPCODELIST_CMD:
             opcodelist();

@@ -37,11 +37,11 @@ void init_OPTAB(char *filename) {
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : get_opcode_by_mnemonic*/
+/*함수 : print_opcode_by_mnemonic*/
 /*목적 : mnemonic을 입력 받아 해당 mnemonic에 맞는 opcode를 알려준다.*/
 /*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-OK_or_ERR get_opcode_by_mnemonic(char *mnemonic) {
+OK_or_ERR print_opcode_by_mnemonic(char *mnemonic) {
     const int OK = 1;
     const int ERR = 0;
     OP_NODE *cur_node = OPTAB_by_mnemonic[hash_func_by_mnemonic(mnemonic, MAX_HASHTABLE_SIZE)];
