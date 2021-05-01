@@ -18,22 +18,24 @@
 #define MAX_HASHTABLE_SIZE 20
 
 /* 사용자 정의 data type*/
-typedef struct OPCODE_MNEMONIC_MAP {
+typedef struct OP_NODE {
     int opcode;
     char mnemonic[MAX_INSTRUCTION_SIZE];
     char format[MAX_FORMAT_SIZE];
-    struct OPCODE_MNEMONIC_MAP *nxt;
-} OPCODE_MNEMONIC_MAP;
+    struct OP_NODE *nxt_by_mnemonic;
+    struct OP_NODE *nxt_by_opcode;
+} OP_NODE;
 
 /* 전역 변수 */
-OPCODE_MNEMONIC_MAP* HASH_TABLE[MAX_HASHTABLE_SIZE];
+OP_NODE* OPTAB_by_mnemonic[MAX_HASHTABLE_SIZE];
+OP_NODE* OPTAB_by_opcode[MAX_HASHTABLE_SIZE];
 
 /* 함수 원형 */
-int get_opcode(char *mnemonic);
-OPCODE_MNEMONIC_MAP *get_opcode_or_NULL(char *mnemonic);
-void init_hash_table(char *filename);
+OK_or_ERR get_opcode_by_mnemonic(char *mnemonic);
+OP_NODE *get_opcode_or_NULL_by_mnemonic(char *mnemonic);
+void init_OPTAB(char *filename);
 void opcodelist();
-void free_hash_table();
+void free_OPTAB();
 
 
 #endif //SP_PROJ1_OPCODE_TABLE_COMMANDS_H

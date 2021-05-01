@@ -73,15 +73,24 @@ int twos_complement_str_to_decint(char *hexstr) {
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : hash_func*/
+/*함수 : hash_func_by_mnemonic*/
 /*목적 : string을 입력 받아 이를 0부터 19까지 20개의 숫자에 mapping한다. 입력 받은 명령어를 구성하는 모든 문자의
  * ASCII  값을 더하여, 20으로 나눈다.*/
 /*리턴값 : total % max_hash_size*/
 /*------------------------------------------------------------------------------------*/
-int hash_func(char *string, int max_hash_size) {
+int hash_func_by_mnemonic(char *string, int max_hash_size) {
     int total = 0;
     for (int i = 0; i < (int)strlen(string); i++) total += string[i];
     return total % max_hash_size;
+}
+
+/*------------------------------------------------------------------------------------*/
+/*함수 : hash_func_by_opcode*/
+/*목적 : int형 opcode를 이를 0부터 19까지 20개의 숫자에 mapping한다.*/
+/*리턴값 : total % max_hash_size*/
+/*------------------------------------------------------------------------------------*/
+int hash_func_by_opcode(int opcode) {
+    return opcode % MAX_HASH_SIZE;
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -226,7 +235,7 @@ OK_or_ERR file_open(char* filename, FILE** fp_itm, FILE** fp_lst, FILE** fp_obj)
 /*리턴값 : register number*/
 /*------------------------------------------------------------------------------------*/
 REG_num get_REG_num(char *REG) {
-    switch (hash_func(REG, MAX_HASH_SIZE)) {
+    switch (hash_func_by_mnemonic(REG, MAX_HASH_SIZE)) {
         case 5:
             return regA;
         case 8:

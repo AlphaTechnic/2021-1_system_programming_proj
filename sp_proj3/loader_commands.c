@@ -318,7 +318,7 @@ void load_pass2(FILE *fp) {
 
 // **************ES table***********//
 void push_to_ESTAB(char *es_name, int es_addr) {
-    int ind = hash_func(es_name, ESTAB_HASH_SIZE);
+    int ind = hash_func_by_mnemonic(es_name, ESTAB_HASH_SIZE);
     ES_NODE *cur_node = ESTAB[ind];
     ES_NODE *new_node = malloc(sizeof(ES_NODE));
 
@@ -341,7 +341,7 @@ void push_to_ESTAB(char *es_name, int es_addr) {
 }
 
 ES_NODE *find_ESNODE_or_NULL(char *es_name) {
-    int ind = hash_func(es_name, ESTAB_HASH_SIZE);
+    int ind = hash_func_by_mnemonic(es_name, ESTAB_HASH_SIZE);
     ES_NODE *cur_node = ESTAB[ind];
     for (; cur_node; cur_node = cur_node->nxt) {
         if (strcmp(cur_node->name, es_name) == 0) {

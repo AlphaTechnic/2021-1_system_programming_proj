@@ -80,7 +80,7 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
     char filename_itm[NAME_LEN];
     FILE *fp_itm;
     INSTRUCTION type; // asm파일 각 line에서 지정하는 명령의 종류를 9가지로 분류하였고, 어떤 유형에 해당하는 지를 저장하는 변수이다.
-    OPCODE_MNEMONIC_MAP *opcode_mnemonic_map_node;
+    OP_NODE *opcode_mnemonic_map_node;
 
     int LOCCTR = 0, STARTING_ADDR = 0;
     int dl, LINE_NUM = 0;  // 'dl' means 'delta LOCCTR'
@@ -177,7 +177,7 @@ OK_or_ERR pass1(FILE *fp, char *filename, int *PROGRAM_SIZE) {
         else
             strcpy(mnemonic_refined, MNEMONIC);
 
-        if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode_or_NULL(mnemonic_refined)) != NULL) {
+        if (type == _OPERATION && (opcode_mnemonic_map_node = get_opcode_or_NULL_by_mnemonic(mnemonic_refined)) != NULL) {
             if (strcmp(opcode_mnemonic_map_node->format, "3/4") == 0) {
                 if (MNEMONIC[0] == '+') dl = 4;
                 else dl = 3;
@@ -328,7 +328,7 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         else
             strcpy(mnemonic_refined, MNEMONIC);
 
-        if (type == _OPERATION && get_opcode_or_NULL(mnemonic_refined) != NULL) {
+        if (type == _OPERATION && get_opcode_or_NULL_by_mnemonic(mnemonic_refined) != NULL) {
             state = make_obj_code(obj_code, LOCCTR, MNEMONIC, OP1, OP2, STARTING_ADDR);
             if (state != OK) {
                 printf("Error! Check line number \"%d\"\n", LINE_NUM * LINE_NUM_SCALE);
@@ -444,7 +444,7 @@ OK_or_ERR make_obj_code(char *obj_code, int PC_val, char *MNEMONIC, char *OP1, c
     int DISP;
     char m_record[M_RECORD_LEN];
 
-    OPCODE_MNEMONIC_MAP *opcode_memonic_map_node;
+    OP_NODE *opcode_memonic_map_node;
     int is_digit_operand = 1;
     SYM_node *sym;
 
@@ -457,7 +457,7 @@ OK_or_ERR make_obj_code(char *obj_code, int PC_val, char *MNEMONIC, char *OP1, c
         strcpy(mnemonic_refined, MNEMONIC);
         e = 0;
     }
-    opcode_memonic_map_node = get_opcode_or_NULL(mnemonic_refined);
+    opcode_memonic_map_node = get_opcode_or_NULL_by_mnemonic(mnemonic_refined);
 
     if (e == 1) format = 4;
     else if (strcmp(opcode_memonic_map_node->format, "3/4") == 0) format = 3;

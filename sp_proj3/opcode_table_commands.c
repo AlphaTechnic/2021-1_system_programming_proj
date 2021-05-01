@@ -5,61 +5,84 @@
 #include "opcode_table_commands.h"
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : init_hash_table*/
+/*함수 : init_OPTAB*/
 /*목적 : opcode 정보들이 적힌 file을 읽어서 해당파일을 열고, 이를 프로그램에서 선언한 hash table에 저장한다.*/
 /*리턴값 : 없음*/
 /*------------------------------------------------------------------------------------*/
-void init_hash_table(char *filename) {
-    int ind;
+void init_OPTAB(char *filename) {
+    int ind_by_mnemonic_hash, ind_by_opcode_hash;
     FILE *fp = fopen(filename, "r");
-    OPCODE_MNEMONIC_MAP *cur_node = malloc(sizeof(OPCODE_MNEMONIC_MAP));
+    OP_NODE *new_node = malloc(sizeof(OP_NODE));
 
-    for (int i = 0; i < MAX_HASHTABLE_SIZE; i++) HASH_TABLE[i] = NULL;
+    for (int i = 0; i < MAX_HASHTABLE_SIZE; i++) {
+        OPTAB_by_mnemonic[i] = NULL;
+        OPTAB_by_opcode[i] = NULL;
+    }
     while (1) {
-        if (fscanf(fp, "%X%s%s", &(cur_node->opcode), cur_node->mnemonic, cur_node->format) == EOF) break;
-        ind = hash_func(cur_node->mnemonic, MAX_HASHTABLE_SIZE);
+        if (fscanf(fp, "%X%s%s", &(new_node->opcode), new_node->mnemonic, new_node->format) == EOF) break;
+        ind_by_mnemonic_hash = hash_func_by_mnemonic(new_node->mnemonic, MAX_HASHTABLE_SIZE);
+        ind_by_opcode_hash = hash_func_by_opcode(new_node->opcode);
 
         // connect
-        cur_node->nxt = HASH_TABLE[ind];
-        HASH_TABLE[ind] = cur_node;
+        new_node->nxt_by_mnemonic = OPTAB_by_mnemonic[ind_by_mnemonic_hash];
+        new_node->nxt_by_opcode = OPTAB_by_opcode[ind_by_opcode_hash];
+
+        OPTAB_by_mnemonic[ind_by_mnemonic_hash] = new_node;
+        OPTAB_by_opcode[ind_by_opcode_hash] = new_node;
         // malloc
-        cur_node = malloc(sizeof(OPCODE_MNEMONIC_MAP));
+        new_node = malloc(sizeof(OP_NODE));
     }
-    free(cur_node);
+    free(new_node);
+    fclose(fp);
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : get_opcode*/
+/*함수 : get_opcode_by_mnemonic*/
 /*목적 : mnemonic을 입력 받아 해당 mnemonic에 맞는 opcode를 알려준다.*/
 /*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
-int get_opcode(char *mnemonic) {
+OK_or_ERR get_opcode_by_mnemonic(char *mnemonic) {
     const int OK = 1;
     const int ERR = 0;
-    OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic, MAX_HASHTABLE_SIZE)];
+    OP_NODE *cur_node = OPTAB_by_mnemonic[hash_func_by_mnemonic(mnemonic, MAX_HASHTABLE_SIZE)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {
             printf("opcode is %02X\n", cur_node->opcode);
             return OK;
         }
-        cur_node = cur_node->nxt;
+        cur_node = cur_node->nxt_by_mnemonic;
     }
     printf("err: no opcode for the mnemonic %s\n", mnemonic);
     return ERR;
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : get_opcode_or_NULL*/
+/*함수 : get_opcode_or_NULL_by_opcode*/
+/*목적 : opcode를 입력 받아 해당 opcode에 맞는 OP_node를 return 한다.*/
+/*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
+/*------------------------------------------------------------------------------------*/
+OP_NODE *get_opcode_or_NULL_by_opcode(int opcode) {
+    int ind = hash_func_by_opcode(opcode);
+    for(OP_NODE *cur_node = OPTAB_by_opcode[ind]; cur_node; cur_node = cur_node->nxt_by_opcode){
+        if(cur_node->opcode == opcode){
+            return cur_node;
+        }
+    }
+    return NULL;
+}
+
+/*------------------------------------------------------------------------------------*/
+/*함수 : get_opcode_or_NULL_by_mnemonic*/
 /*목적 : 주어진 mnemonic에 맞는 opcode를 return하는 함수이다*/
 /*리턴값 : 주어진 mnemonic이 opcode table에 있다면 해당 node를 리턴,    없다면 NULL을 리턴*/
 /*------------------------------------------------------------------------------------*/
-OPCODE_MNEMONIC_MAP *get_opcode_or_NULL(char *mnemonic) {
-    OPCODE_MNEMONIC_MAP *cur_node = HASH_TABLE[hash_func(mnemonic, MAX_HASHTABLE_SIZE)];
+OP_NODE *get_opcode_or_NULL_by_mnemonic(char *mnemonic) {
+    OP_NODE *cur_node = OPTAB_by_mnemonic[hash_func_by_mnemonic(mnemonic, MAX_HASHTABLE_SIZE)];
     while (cur_node != NULL) {
         if (strcmp(cur_node->mnemonic, mnemonic) == 0) {
             return cur_node;
         }
-        cur_node = cur_node->nxt;
+        cur_node = cur_node->nxt_by_mnemonic;
     }
     return NULL;
 }
@@ -70,40 +93,40 @@ OPCODE_MNEMONIC_MAP *get_opcode_or_NULL(char *mnemonic) {
 /*리턴값 : 없음*/
 /*------------------------------------------------------------------------------------*/
 void opcodelist() {
-    OPCODE_MNEMONIC_MAP *cur_node;
+    OP_NODE *cur_node;
     for (int i = 0; i < MAX_HASHTABLE_SIZE; i++) {
         printf("%d : ", i);
-        cur_node = HASH_TABLE[i];
+        cur_node = OPTAB_by_mnemonic[i];
         if (cur_node == NULL) {
             printf("\n");
             continue;
         }
         printf("[%s,%02X]", cur_node->mnemonic, cur_node->opcode);
-        cur_node = cur_node->nxt;
+        cur_node = cur_node->nxt_by_mnemonic;
 
         while (cur_node != NULL){
             printf(" -> ");
             printf("[%s,%02X]", cur_node->mnemonic, cur_node->opcode);
-            cur_node = cur_node->nxt;
+            cur_node = cur_node->nxt_by_mnemonic;
         }
         printf("\n");
     }
 }
 
 /*------------------------------------------------------------------------------------*/
-/*함수 : free_hash_table*/
+/*함수 : free_OPTAB*/
 /*목적 : hash table에 저장된 모든 node들의 할당을 해제한다.*/
 /*리턴값 : 없음*/
 /*------------------------------------------------------------------------------------*/
-void free_hash_table(){
-    OPCODE_MNEMONIC_MAP * cur_node;
+void free_OPTAB(){
+    OP_NODE *pre_node;
     for (int i=0; i<MAX_HASHTABLE_SIZE; i++){
-        cur_node = HASH_TABLE[i];
-        while(cur_node!= NULL){
-            OPCODE_MNEMONIC_MAP *tmp_node;
-            tmp_node = cur_node->nxt;
-            free(cur_node);
-            cur_node = tmp_node;
+        for (OP_NODE *cur_node = OPTAB_by_mnemonic[i]; cur_node;){
+            pre_node = cur_node;
+            cur_node = cur_node->nxt_by_mnemonic;
+            free(pre_node);
         }
+        OPTAB_by_mnemonic[i] = NULL;
     }
+    for (int i = 0; i < MAX_HASH_SIZE; i++) OPTAB_by_opcode[i] = NULL;
 }

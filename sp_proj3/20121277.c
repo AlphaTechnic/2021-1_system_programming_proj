@@ -28,7 +28,7 @@ int main() {
             continue;
         } else if (cmd == QUIT_CMD) {
             free_log_of_instructions();
-            free_hash_table();
+            free_OPTAB();
             break;
         }
 
@@ -51,7 +51,7 @@ void init() {
     TAIL = NULL;
     NUM_OF_TOKENS = 0;
     LAST_ADDR = -1;
-    init_hash_table("opcode.txt");
+    init_OPTAB("opcode.txt");
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -179,7 +179,7 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
 
         // opcode table commands
         case OPCODE_MNEMONIC_CMD:
-            RESULT = get_opcode(INPUT_SPLIT[1]);
+            RESULT = get_opcode_by_mnemonic(INPUT_SPLIT[1]);
             break;
         case OPCODELIST_CMD:
             opcodelist();
