@@ -44,6 +44,16 @@ void load_pass2(FILE *fp);
 
 void push_to_ESTAB(char *es_name, int es_addr);
 ES_NODE *find_ESNODE_or_NULL(char *es_name);
-int LD_value(int ni, int TA, int num_of_bytes, int format);
+int LD_related_instruction(int ni, int TA, int num_of_bytes, int format);
+
+OK_or_ERR bp_command(int num_of_tokens, char *addr_hexstr_or_claer_str);
+void push_to_BPTAB(int addr);
+OK_or_ERR run();
+OK_or_ERR execute_instructions();
+int LD_related_instruction(int ni, int TA, int format, int num_of_bytes);
+int J_related_instruction(int ni, int TA, int format);
+void ST_related_instruction(int ni, int TA, int tar_val, int format, int num_of_bytes);
+
+
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

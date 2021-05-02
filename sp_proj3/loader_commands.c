@@ -407,7 +407,7 @@ OK_or_ERR run(){
             bp_visited = 1;
             return OK;
         }
-        // 메모리의 명령을 수행******************
+        execute_instructions();
         bp_visited = 0;
     }
     // print register
@@ -424,6 +424,7 @@ OK_or_ERR execute_instructions(){
     int reg1, reg2;
     int disp = 0;
     int ni, x, b, p, e;
+    ni = x = b = p = e = 0;
 
     int TA = 0;
     int start_loc = REG[regPC];
@@ -487,32 +488,115 @@ OK_or_ERR execute_instructions(){
             REG[reg1] = 0;
             break;
         case 0x28: // COMP
-            operand = LD_value(ni, TA, 3, format);
+            operand = LD_related_instruction(ni, TA, format, 3);
             if (REG[regA] > operand) CC = '>';
             else if (REG[regA] < operand) CC = '<';
             else CC = '=';
             break;
         case 0x3C: // J
-            operand =
-
+            REG[regPC] = J_related_instruction(ni, TA, format);
+            break;
+        case 0x30: // JEQ
+            if (CC=='=') REG[regPC] = J_related_instruction(ni, TA, format);
+            break;
+        case 0x38: // JLT
+            if (CC=='<') REG[regPC] = J_related_instruction(ni, TA, format);
+            break;
+        case 0x48: // JSUB
+            REG[regL] = REG[regPC];
+            REG[regPC] = J_related_instruction(ni, TA, format);
+            break;
+        case 0x00: // LDA
+            REG[regA] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0x68: // LDB
+            REG[regB] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0x50: // LDCH
+            operand = LD_related_instruction(ni, TA, format, 1);
+            REG[regA] = (REG[regA] & 0xFFFFFF00) | (0x000000FF & operand); // rightmost byte
+            break;
+        case 0x70: // LDF
+            REG[regF] = LD_related_instruction(ni, TA, format, 6);
+            break;
+        case 0x08: // LDL
+            REG[regS] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0x6C: // LDS
+            REG[regS] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0x74: // LDT
+            REG[regT] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0x04: // LDX
+            REG[regX] = LD_related_instruction(ni, TA, format, 3);
+            break;
+        case 0xDB: // RD
+            REG[regA] = REG[regA] & 0xFFFFFF00;
+            break;
+        case 0x4C: // RSUB
+            REG[regPC] = REG[regL];
+            break;
+        case 0x0C: // STA
+            ST_related_instruction(ni, TA, REG[regA], format, 3);
+            break;
+        case 0x78: // STB
+            ST_related_instruction(ni, TA, REG[regB], format, 3);
+            break;
+        case 0x54: // STCH
+            ST_related_instruction(ni, TA, REG[regA], format, 1);
+            break;
+        case 0x80: // STF
+            ST_related_instruction(ni, TA, REG[regF], format, 6);
+            break;
+        case 0x14: // STL
+            ST_related_instruction(ni, TA, REG[regL], format, 3);
+            break;
+        case 0x7C: // STS
+            ST_related_instruction(ni, TA, REG[regS], format, 3);
+            break;
+        case 0xE8: // STSW
+            ST_related_instruction(ni, TA, REG[regSW], format, 3);
+            break;
+        case 0x84: // STT
+            ST_related_instruction(ni, TA, REG[regT], format, 3);
+            break;
+        case 0x10: // STX
+            ST_related_instruction(ni, TA, REG[regX], format, 3);
+            break;
+        case 0xE0: // TD
+            CC = '<';
+            break;
+        case 0xB8: // TIXR
+            REG[regX] += 1;
+            if (REG[regX] > REG[reg1]) CC = '>';
+            else if (REG[regX] < REG[reg1]) CC = '<';
+            else CC = '=';
+            break;
+        case 0xDC: // WD
+            break;
+        default:
+            printf("wrong access! : 0x%02X\n", REG[regPC]);
+            return OBJ_CODE_ERR;
+            break;
     }
 }
 
-int LD_value(int ni, int TA, int num_of_bytes, int format){
+int LD_related_instruction(int ni, int TA, int format, int num_of_bytes){
     int tar_val = 0;
 
     if (format == 4) return TA;
     switch (ni){
-        case 0: // ni ==00 : considered as standard SIC instruction
+        case 0: // ni == 00 : considered as standard SIC instruction
             tar_val = -1;
-        case 1 : // ni==01 : immediate addressing
+        case 1 : // ni == 01 : immediate addressing
             tar_val = TA;
             break;
-        case 2:  // ni==10 : indirect addressing
+        case 2:  // ni == 10 : indirect addressing
             TA = MEMORY[TA];
             for (int i = 0; i < num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i*8);
             break;
-        case 3: // ni==11 : simple addressing
+        case 3: // ni == 11 : simple addressing
             for (int i = 0; i<num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i*8);
             break;
         default:
@@ -521,22 +605,40 @@ int LD_value(int ni, int TA, int num_of_bytes, int format){
     return tar_val;
 }
 
-int J_addr(int ni, int TA, int format){
+int J_related_instruction(int ni, int TA, int format){
     int result = 0;
-
     if (format == 4) return TA;
+
     switch(ni){
-        case 0: // ni == 00, J 관련 명령어에 해당 경우는 없다고 가정
-            break;
-        case 1: // ni == 10, J 관련 명령어에 해당 경우는 없다고 가정
-            break;
         case 2: // ni == 10 : indirect addressing
             for (int i = 0; i < 3; i++) result += MEMORY[TA + 2 - i] << (i*8);
             break;
-        case 3:
+        case 3: // ni == 11 : simple addressing
             result = TA;
+            break;
         default:
             break;
     }
     return result;
 }
+
+void ST_related_instruction(int ni, int TA, int tar_val, int format, int num_of_bytes){
+    if (ni == 2) TA = MEMORY[TA]; // ni == 10 : indirect addressing
+
+    switch (num_of_bytes){
+        case 1:
+            MEMORY[TA] =  tar_val & 0x000000FF;
+            break;
+        case 3:
+            for (int i = 0; i < num_of_bytes; i++)
+                MEMORY[TA + 2 - i] = (tar_val & (0x000000FF << (8 * i))) >> (8 * i);
+            break;
+        case 6:
+            for (int i = 0; i < num_of_bytes; i++)
+                MEMORY[TA + 5 - i] = (tar_val & (0x0000000000FF << (8 * i))) >> (8 * i);
+            break;
+        default:
+            break;
+    }
+}
+
