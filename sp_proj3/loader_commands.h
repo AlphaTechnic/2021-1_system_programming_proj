@@ -30,6 +30,7 @@ int BP_CHK[MEM_SIZE];
 int bp_visited;
 
 int REG[REG_NUM + 1];
+char CC; // Condition Code
 int PROG_ADDR;
 int CS_ADDR;
 int FIRST_INSTRUCTION_ADDR;
@@ -43,5 +44,6 @@ void load_pass2(FILE *fp);
 
 void push_to_ESTAB(char *es_name, int es_addr);
 ES_NODE *find_ESNODE_or_NULL(char *es_name);
+int LD_value(int ni, int TA, int num_of_bytes, int format);
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

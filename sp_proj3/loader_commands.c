@@ -425,7 +425,7 @@ OK_or_ERR execute_instructions(){
     int disp = 0;
     int ni, x, b, p, e;
 
-    int tar_addr = 0;
+    int TA = 0;
     int start_loc = REG[regPC];
     int operand;
 
@@ -475,9 +475,68 @@ OK_or_ERR execute_instructions(){
 
     // operand 값 정하기
     if (format == 3 || format == 4){
-        if (b == 1 && p == 0) tar_addr = REG[regB] + disp; // b-relative addressing
-        else if (b == 0 && p == 1) tar_addr = REG[regPC] + disp; // p-relative addressing
-        else if (b == 0 && p == 0) tar_addr = disp; // direct addressing
+        if (b == 1 && p == 0) TA = REG[regB] + disp; // b-relative addressing
+        else if (b == 0 && p == 1) TA = REG[regPC] + disp; // p-relative addressing
+        else if (b == 0 && p == 0) TA = disp; // direct addressing
     }
-    if (x == 1) tar_addr += REG[regX];
+    if (x == 1) TA += REG[regX];
+
+    // execute instructions
+    switch (opcode){
+        case 0XB4: // CLEAR
+            REG[reg1] = 0;
+            break;
+        case 0x28: // COMP
+            operand = LD_value(ni, TA, 3, format);
+            if (REG[regA] > operand) CC = '>';
+            else if (REG[regA] < operand) CC = '<';
+            else CC = '=';
+            break;
+        case 0x3C: // J
+            operand =
+
+    }
+}
+
+int LD_value(int ni, int TA, int num_of_bytes, int format){
+    int tar_val = 0;
+
+    if (format == 4) return TA;
+    switch (ni){
+        case 0: // ni ==00 : considered as standard SIC instruction
+            tar_val = -1;
+        case 1 : // ni==01 : immediate addressing
+            tar_val = TA;
+            break;
+        case 2:  // ni==10 : indirect addressing
+            TA = MEMORY[TA];
+            for (int i = 0; i < num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i*8);
+            break;
+        case 3: // ni==11 : simple addressing
+            for (int i = 0; i<num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i*8);
+            break;
+        default:
+            break;
+    }
+    return tar_val;
+}
+
+int J_addr(int ni, int TA, int format){
+    int result = 0;
+
+    if (format == 4) return TA;
+    switch(ni){
+        case 0: // ni == 00, J 관련 명령어에 해당 경우는 없다고 가정
+            break;
+        case 1: // ni == 10, J 관련 명령어에 해당 경우는 없다고 가정
+            break;
+        case 2: // ni == 10 : indirect addressing
+            for (int i = 0; i < 3; i++) result += MEMORY[TA + 2 - i] << (i*8);
+            break;
+        case 3:
+            result = TA;
+        default:
+            break;
+    }
+    return result;
 }
