@@ -16,6 +16,8 @@
 #define STR_ADDR_LEN 20
 #define MAX_HASH_SIZE 20
 #define REG_NUM 9
+#define CYN   "\x1B[36m"
+#define RESET "\x1B[0m"
 
 typedef enum{
     OBJ_CODE_ERR = -5,

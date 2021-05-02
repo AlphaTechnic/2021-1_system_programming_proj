@@ -132,7 +132,7 @@ COMMAND get_command() {
 
         // loader commands
     else if (strcmp(cmd, "progaddr") == 0 && NUM_OF_TOKENS == 2) return PROGADDR_CMD;
-    else if (strcmp(cmd, "loader") == 0 && NUM_OF_TOKENS == 4) return LOADER_CMD;
+    else if (strcmp(cmd, "loader") == 0 && NUM_OF_TOKENS <= 4) return LOADER_CMD;
     else if (strcmp(cmd, "bp") == 0 && (NUM_OF_TOKENS >= 1 && NUM_OF_TOKENS <= 2)) return BP_CMD;
     else if (strcmp(cmd, "run") == 0 && NUM_OF_TOKENS == 1) return RUN_CMD;
     return WRONG_CMD;
@@ -204,8 +204,10 @@ SUCCESS_or_FAIL execute_cmd(COMMAND cmd) {
             RESULT = loader(INPUT_SPLIT);
             break;
         case BP_CMD:
+            RESULT = bp_command(NUM_OF_TOKENS, INPUT_SPLIT[1]);
             break;
         case RUN_CMD:
+            RESULT = run();
             break;
 
         default:// WRONG_CMD

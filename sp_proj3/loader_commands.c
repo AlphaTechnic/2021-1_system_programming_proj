@@ -77,7 +77,7 @@ OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]) {
     // total len, exec addr
     // reset register
     for (int i = 0; i < REG_NUM; i++) REG[i] = 0;
-    REG[regL] = TOTAL_LEN; //////////////////////
+    REG[regL] = TOTAL_LEN;
     REG[regPC] = FIRST_INSTRUCTION_ADDR;
     bp_visited = 0;
 
@@ -364,18 +364,20 @@ OK_or_ERR bp_command(int num_of_tokens, char *addr_hexstr_or_claer_str) {
             BP_CHK[cur_node->addr] = 0;
         }
         BP_LIST_HEAD = NULL;
-        printf("\t\t[ok] clear all breakpoints\n");
+        printf("\t\t[" CYN"ok"RESET "] clear all breakpoints\n");
     }
     else if (num_of_tokens == 2) {
         int addr_int = hexstr_to_decint(addr_hexstr_or_claer_str);
         if (addr_int < 0) return RANGE_ERR;
         if (addr_int > MEM_SIZE) return RANGE_ERR;
 
-        // push to BPTABLE*************************
+        push_to_BPTAB(addr_int);
         BP_CHK[addr_int] = 1;
-        printf("\t\t[ok] create breakpoint %s\n", addr_hexstr_or_claer_str);
+        printf("\t\t[" CYN"ok"RESET "] create breakpoint %s\n", addr_hexstr_or_claer_str);
     }
     else return RANGE_ERR;
+
+    return OK;
 }
 
 void push_to_BPTAB(int addr) {
@@ -436,7 +438,7 @@ OK_or_ERR execute_instructions(){
     opcode = MEMORY[start_loc];
     ni = opcode % 4;
     opcode -= ni;
-    op_node = get_opcode_or_NULL_by_mnemonic(opcode);
+    op_node = get_opcode_or_NULL_by_opcode(opcode);
     if (!op_node) return OBJ_CODE_ERR;
 
     // 해당 mnemonic의 format을 알아냄.
@@ -493,6 +495,11 @@ OK_or_ERR execute_instructions(){
             else if (REG[regA] < operand) CC = '<';
             else CC = '=';
             break;
+        case 0xA0: // COMPR
+            if (REG[reg1] > REG[reg2]) CC = '>';
+            else if (REG[reg1] < REG[reg2]) CC = '<';
+            else CC = '=';
+            break;
         case 0x3C: // J
             REG[regPC] = J_related_instruction(ni, TA, format);
             break;
@@ -520,7 +527,7 @@ OK_or_ERR execute_instructions(){
             REG[regF] = LD_related_instruction(ni, TA, format, 6);
             break;
         case 0x08: // LDL
-            REG[regS] = LD_related_instruction(ni, TA, format, 3);
+            REG[regL] = LD_related_instruction(ni, TA, format, 3);
             break;
         case 0x6C: // LDS
             REG[regS] = LD_related_instruction(ni, TA, format, 3);
@@ -531,7 +538,7 @@ OK_or_ERR execute_instructions(){
         case 0x04: // LDX
             REG[regX] = LD_related_instruction(ni, TA, format, 3);
             break;
-        case 0xDB: // RD
+        case 0xD8: // RD
             REG[regA] = REG[regA] & 0xFFFFFF00;
             break;
         case 0x4C: // RSUB
@@ -580,6 +587,7 @@ OK_or_ERR execute_instructions(){
             return OBJ_CODE_ERR;
             break;
     }
+    return OK;
 }
 
 int LD_related_instruction(int ni, int TA, int format, int num_of_bytes){
