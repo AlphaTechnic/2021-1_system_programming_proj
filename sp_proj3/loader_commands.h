@@ -21,39 +21,38 @@ typedef struct ES_NODE{
 }ES_NODE;
 ES_NODE *ESTAB[ESTAB_HASH_SIZE];
 
-typedef struct BP_NODE{
-    int addr;
-    struct BP_NODE* nxt;
-}BP_NODE;
-BP_NODE *BP_LIST_HEAD;
+// bp가 걸려있는 memory cell의 주소에 true(1) 값을 저장시켜 bp가 걸려있음을 표시한다.
 int BP_CHK[MEM_SIZE];
-int bp_visited;
+int BP_ADDR[MEM_SIZE];
+int PRINT_FLAG;
+int NUM_OF_BP;
 
+// 레지스터와 프로그램 address와 길이 관리 변수
 int REG[REG_NUM + 1];
 char CC; // Condition Code
-int PROG_ADDR;
+int PROGRAM_ADDR;
 int CS_ADDR;
-int FIRST_INSTRUCTION_ADDR;
 int CS_LEN;
-int TOTAL_LEN;
+int PROGRAM_LEN;
+int FIRST_INSTRUCTION_ADDR;
 
+// func about loader instruction
 OK_or_ERR set_PROGADDR(char* addr_hexstr);
 OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]);
-void load_pass1(FILE *fp);
-void load_pass2(FILE *fp);
+OK_or_ERR load_pass1(FILE *fp);
+OK_or_ERR load_pass2(FILE *fp);
 
-void push_to_ESTAB(char *es_name, int es_addr);
+// func about ESTAB instruction
+OK_or_ERR push_to_ESTAB(char *es_name, int es_addr);
 ES_NODE *find_ESNODE_or_NULL(char *es_name);
-int LD_related_instruction(int ni, int TA, int num_of_bytes, int format);
+void free_ESTAB();
 
+// func about BP and run instruction
 OK_or_ERR bp_command(int num_of_tokens, char *addr_hexstr_or_claer_str);
-void push_to_BPTAB(int addr);
 OK_or_ERR run();
 OK_or_ERR execute_instructions();
 int LD_related_instruction(int ni, int TA, int format, int num_of_bytes);
 int J_related_instruction(int ni, int TA, int format);
 void ST_related_instruction(int ni, int TA, int tar_val, int format, int num_of_bytes);
-
-
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

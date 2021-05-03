@@ -20,6 +20,7 @@
 #define RESET "\x1B[0m"
 
 typedef enum{
+    CMD_ERR = -6,
     OBJ_CODE_ERR = -5,
     ASSEMBLY_CODE_ERR = -4,
     FILE_ERR,

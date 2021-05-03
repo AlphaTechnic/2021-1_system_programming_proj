@@ -29,6 +29,7 @@ int main() {
         } else if (cmd == QUIT_CMD) {
             free_log_of_instructions();
             free_OPTAB();
+            free_ESTAB();
             break;
         }
 
