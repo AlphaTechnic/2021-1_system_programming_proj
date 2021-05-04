@@ -519,6 +519,11 @@ OK_or_ERR run() {
     printf("B : %06X   S : %06X\n", REG[regB], REG[regS]);
     printf("T : %06X\n", REG[regT]);
     printf("\t\tEnd Program\n");
+
+    // 프로그램 수행이 끝나면 프로그램이 다시 처음부터 수행되도록 설정
+    REG[regL] = PROGRAM_LEN;
+    REG[regPC] = FIRST_INSTRUCTION_ADDR;
+    PRINT_FLAG = 0;
     return OK;
 }
 
