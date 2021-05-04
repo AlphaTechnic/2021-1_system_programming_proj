@@ -116,7 +116,6 @@ OK_or_ERR load_pass1(FILE *fp) {
             char CS_start_addr_hexstr[STR_ADDR_LEN];
             char CS_len_hexstr[STR_ADDR_LEN];
             int CS_start_addr_int;
-            int CS_len_hexstr_int;
 
             line[strlen(line) - 1] = '\0';
             ptr = strtok(line, " \r");
@@ -660,31 +659,31 @@ OK_or_ERR execute_instructions() {
             REG[regPC] = REG[regL];
             break;
         case 0x0C: // STA
-            ST_related_instruction(ni, TA, REG[regA], format, 3);
+            ST_related_instruction(ni, TA, REG[regA], 3);
             break;
         case 0x78: // STB
-            ST_related_instruction(ni, TA, REG[regB], format, 3);
+            ST_related_instruction(ni, TA, REG[regB], 3);
             break;
         case 0x54: // STCH
-            ST_related_instruction(ni, TA, REG[regA], format, 1);
+            ST_related_instruction(ni, TA, REG[regA], 1);
             break;
         case 0x80: // STF
-            ST_related_instruction(ni, TA, REG[regF], format, 6);
+            ST_related_instruction(ni, TA, REG[regF], 6);
             break;
         case 0x14: // STL
-            ST_related_instruction(ni, TA, REG[regL], format, 3);
+            ST_related_instruction(ni, TA, REG[regL], 3);
             break;
         case 0x7C: // STS
-            ST_related_instruction(ni, TA, REG[regS], format, 3);
+            ST_related_instruction(ni, TA, REG[regS], 3);
             break;
         case 0xE8: // STSW
-            ST_related_instruction(ni, TA, REG[regSW], format, 3);
+            ST_related_instruction(ni, TA, REG[regSW], 3);
             break;
         case 0x84: // STT
-            ST_related_instruction(ni, TA, REG[regT], format, 3);
+            ST_related_instruction(ni, TA, REG[regT], 3);
             break;
         case 0x10: // STX
-            ST_related_instruction(ni, TA, REG[regX], format, 3);
+            ST_related_instruction(ni, TA, REG[regX], 3);
             break;
         case 0xE0: // TD
             CC = '<';
@@ -762,7 +761,7 @@ int J_related_instruction(int ni, int TA, int format) {
 /*목적 : operand로 m..m+2가 오며, 해당 메모리 주소에 val_to_push를 적재한다. */
 /*리턴값 : 없음 */
 /*------------------------------------------------------------------------------------*/
-void ST_related_instruction(int ni, int TA, int val_to_push, int format, int num_of_bytes) {
+void ST_related_instruction(int ni, int TA, int val_to_push, int num_of_bytes) {
     if (ni == 2) TA = MEMORY[TA]; // ni == 10 : indirect addressing
 
     switch (num_of_bytes) {

@@ -53,6 +53,6 @@ OK_or_ERR run();
 OK_or_ERR execute_instructions();
 int LD_related_instruction(int ni, int TA, int format, int num_of_bytes);
 int J_related_instruction(int ni, int TA, int format);
-void ST_related_instruction(int ni, int TA, int val_to_push, int format, int num_of_bytes);
+void ST_related_instruction(int ni, int TA, int val_to_push, int num_of_bytes);
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

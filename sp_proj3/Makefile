@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -W -Wall
 TARGET = 20121277.out
-OBJECTS = 20121277.o utils.o shell_commands.o memory_commands.o opcode_table_commands.o assembler_commands.o
+OBJECTS = 20121277.o utils.o shell_commands.o memory_commands.o opcode_table_commands.o assembler_commands.o loader_commands.o
 
 all : $(TARGET)
 
