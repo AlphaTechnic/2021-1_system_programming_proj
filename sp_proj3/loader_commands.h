@@ -31,9 +31,9 @@ int NUM_OF_BP;
 int REG[REG_NUM + 1];
 char CC; // Condition Code
 int PROGRAM_ADDR;
+int PROGRAM_LEN;
 int CS_ADDR;
 int CS_LEN;
-int PROGRAM_LEN;
 int FIRST_INSTRUCTION_ADDR;
 
 // func about loader instruction
@@ -53,6 +53,6 @@ OK_or_ERR run();
 OK_or_ERR execute_instructions();
 int LD_related_instruction(int ni, int TA, int format, int num_of_bytes);
 int J_related_instruction(int ni, int TA, int format);
-void ST_related_instruction(int ni, int TA, int tar_val, int format, int num_of_bytes);
+void ST_related_instruction(int ni, int TA, int val_to_push, int format, int num_of_bytes);
 
 #endif //ASSEMBLER_COMMANDS_C_LOADER_H

@@ -53,6 +53,9 @@ void init() {
     NUM_OF_TOKENS = 0;
     LAST_ADDR = -1;
     init_OPTAB("opcode.txt");
+    for (int i = 0; i < MEM_SIZE; i++){
+        BP_CHK[i] = 0;
+    }
 }
 
 /*------------------------------------------------------------------------------------*/

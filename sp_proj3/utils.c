@@ -55,12 +55,13 @@ int hexstr_to_decint(char *hexstr) {
 
 /*------------------------------------------------------------------------------------*/
 /*함수 : twos_complement_str_to_decint*/
-/*목적 : 주어진 hexstr에 대한 유효성 검사와 문자열 hexstr을 signed 32bit hexstr로 간주하고, 조응하는 dec int값으로 변환한다.*/
+/*목적 : 주어진 hex str에 대한 유효성 검사와 문자열 hex str을 signed 32bit hex 표현으로 간주하고,
+ * 이에 조응하는 dec int값으로 변환한다.*/
 /*리턴값 : res - 문자열 hexstr을 int형 signed 32bit 표현으로 바꾼 결과*/
 /*------------------------------------------------------------------------------------*/
 int twos_complement_str_to_decint(char *hexstr) {
     int res;
-    // 주어진 hexstr을 decimal int 값로 바꾸며, 유효성 검사 실행
+    // 주어진 hexstr을 decimal int 값로 바꾸며, 유효성 검사 실
     res = hexstr_to_decint(hexstr);
     if (res == RANGE_ERR) return RANGE_ERR; // range err!
 
@@ -70,7 +71,7 @@ int twos_complement_str_to_decint(char *hexstr) {
 
     // 주어진 hexstr 값이 음수라면, 값을 2의 보수표현으로 읽어 return
     // 주어진 hexstr bit 앞에 FF를 붙여 음수 bit가 반영된 32bit 수로 변환한다.
-    return res = res | 0xFF000000;
+    return res | 0xFF000000;
 }
 
 /*------------------------------------------------------------------------------------*/

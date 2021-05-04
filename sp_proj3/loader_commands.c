@@ -102,7 +102,7 @@ OK_or_ERR loader(char filenames[MAX_FILES_NUM][MAX_FILENAME_LEN]) {
 
 /*------------------------------------------------------------------------------------*/
 /*함수 : load_pass1*/
-/*목적 : H 레코드와 D 레코드를 참조하여, ES table을 완성한다.*/
+/*목적 : object file을 열어 H 레코드와 D 레코드를 참조하여, ES table을 완성한다.*/
 /*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
 OK_or_ERR load_pass1(FILE *fp) {
@@ -216,14 +216,14 @@ OK_or_ERR load_pass2(FILE *fp) {
         }
         else if (line[0] == 'R') {
             char rf_ind_hexstr[NAME_LEN];
-            char ES_name[NAME_LEN];
             int rf_ind;
+            char ES_name[NAME_LEN];
 
             line[strlen(line) - 1] = '\0';
             ptr = strtok(line, " \r");
             ptr++;
 
-            // RFTAB[rf_ind]에 해당 address를 저장하는 작업
+            // RFTAB[rf_ind]에 해당 symbol의 address를 저장하는 작업
             for (; ptr; ptr = strtok(NULL, " \r")) {
                 strncpy(rf_ind_hexstr, ptr, 2);
                 rf_ind_hexstr[2] = '\0';
@@ -293,7 +293,6 @@ OK_or_ERR load_pass2(FILE *fp) {
             int halfbytes_len_to_be_modified_int;
             int rf_ind_int;
             int dx; // modify를 적용하는 증분(음수일 수 있음). target object code에 dx만큼의 조정을 가하게 된다.
-            ES_NODE *es_node;
 
             // get "modified될 명령의 시작 위치"
             line[strlen(line) - 1] = '\0';
@@ -443,7 +442,8 @@ void free_ESTAB() {
 /*함수 : bp_command*/
 /*목적 : bp 관련한 사용자의 명령에 따라 관련 작업을 수행하고, 그 내용은 아래와 같다.
  * 1. bp : bp가 걸린 메모리 주소를 보여준다.
- * 2. bp clear : set 되어 있는 bp값들을 모두 해제한다.*/
+ * 2. bp clear : set 되어 있는 bp값들을 모두 해제한다.
+ * 3. bp [address] : 해당 [address]에 bp를 설정한다.*/
 /*리턴값 : OK - 성공인 경우, ERR - 에러인 경우*/
 /*------------------------------------------------------------------------------------*/
 OK_or_ERR bp_command(int num_of_tokens, char *addr_hexstr_or_claer_str) {
@@ -543,6 +543,7 @@ OK_or_ERR execute_instructions() {
 
     // 메모리에서 1 byte 읽어옴.
     opcode = MEMORY[start_loc];
+    // get opcode and ni
     ni = opcode & 0b00000011;
     opcode -= ni;
     op_node = get_opcode_or_NULL_by_opcode(opcode);
@@ -587,7 +588,7 @@ OK_or_ERR execute_instructions() {
 
     // disp가 음수인 경우, 2의 보수표현 -> int 값으로 가져온다
     // "| 0xFFFFF000"은 disp값(3 halfbyte)에 앞에 FFFFF를 붙여서, 이를 32bit 2의 보수표현으로 읽히게 하는 작업이다
-    if (format == 3 && (disp & 0x800)) disp = disp | 0xFFFFF000;
+    if (format == 3 && (disp & 0x800)) disp = (int)(disp | 0xFFFFF000);
 
     // operand 값 정하기
     if (format == 3 || format == 4) {
@@ -634,7 +635,7 @@ OK_or_ERR execute_instructions() {
             break;
         case 0x50: // LDCH
             operand = LD_related_instruction(ni, TA, format, 1);
-            REG[regA] = (REG[regA] & 0xFFFFFF00) | (0x000000FF & operand); // rightmost byte
+            REG[regA] = (int)((REG[regA] & 0xFFFFFF00) | (0x000000FF & operand)); // rightmost byte
             break;
         case 0x70: // LDF
             REG[regF] = LD_related_instruction(ni, TA, format, 6);
@@ -652,7 +653,8 @@ OK_or_ERR execute_instructions() {
             REG[regX] = LD_related_instruction(ni, TA, format, 3);
             break;
         case 0xD8: // RD
-            REG[regA] = REG[regA] & 0xFFFFFF00;
+            // input device로부터 아무것도 받지 못했다는 가정. input device로부터 NULL(ascii==0)을 읽어온다
+            REG[regA] = (int)(REG[regA] & 0xFFFFFF00);
             break;
         case 0x4C: // RSUB
             REG[regPC] = REG[regL];
@@ -710,26 +712,27 @@ OK_or_ERR execute_instructions() {
 /*리턴값 : tar_val*/
 /*------------------------------------------------------------------------------------*/
 int LD_related_instruction(int ni, int TA, int format, int num_of_bytes) {
-    int tar_val = 0;
+    int Val = 0;
 
     if (format == 4) return TA;
     switch (ni) {
         case 0: // ni == 00 : considered as standard SIC instruction
-            tar_val = -1;
+            // COPY 프로그램에 해당 유형의 instruction은 존재하지 않는다고 가정.
+            break;
         case 1 : // ni == 01 : immediate addressing
-            tar_val = TA;
+            Val = TA;
             break;
         case 2:  // ni == 10 : indirect addressing
             TA = MEMORY[TA];
-            for (int i = 0; i < num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i * 8);
+            for (int i = 0; i < num_of_bytes; i++) Val += MEMORY[TA + num_of_bytes - 1 - i] << (i * 8);
             break;
         case 3: // ni == 11 : simple addressing
-            for (int i = 0; i < num_of_bytes; i++) tar_val += MEMORY[TA + num_of_bytes - 1 - i] << (i * 8);
+            for (int i = 0; i < num_of_bytes; i++) Val += MEMORY[TA + num_of_bytes - 1 - i] << (i * 8);
             break;
         default:
             break;
     }
-    return tar_val;
+    return Val;
 }
 
 /*------------------------------------------------------------------------------------*/
@@ -738,43 +741,43 @@ int LD_related_instruction(int ni, int TA, int format, int num_of_bytes) {
 /*리턴값 : tar_addr*/
 /*------------------------------------------------------------------------------------*/
 int J_related_instruction(int ni, int TA, int format) {
-    int tar_addr = 0;
+    int Addr = 0;
     if (format == 4) return TA;
 
     switch (ni) {
         case 2: // ni == 10 : indirect addressing
-            for (int i = 0; i < 3; i++) tar_addr += MEMORY[TA + 2 - i] << (i * 8);
+            for (int i = 0; i < 3; i++) Addr += MEMORY[TA + 2 - i] << (i * 8);
             break;
         case 3: // ni == 11 : simple addressing
-            tar_addr = TA;
+            Addr = TA;
             break;
         default:
             break;
     }
-    return tar_addr;
+    return Addr;
 }
 
 /*------------------------------------------------------------------------------------*/
 /*함수 : ST_related_instruction*/
-/*목적 : operand로 (m..m+2)가 즉, operand로 'MEM가 가지고 있는 value'가 오며, 그 value를 메모리에 적재한다. */
+/*목적 : operand로 m..m+2가 오며, 해당 메모리 주소에 val_to_push를 적재한다. */
 /*리턴값 : 없음 */
 /*------------------------------------------------------------------------------------*/
-void ST_related_instruction(int ni, int TA, int tar_val, int format, int num_of_bytes) {
+void ST_related_instruction(int ni, int TA, int val_to_push, int format, int num_of_bytes) {
     if (ni == 2) TA = MEMORY[TA]; // ni == 10 : indirect addressing
 
     switch (num_of_bytes) {
         case 1:
-            MEMORY[TA] = tar_val & 0x000000FF;
+            MEMORY[TA] = val_to_push & 0x000000FF;
             break;
         case 3:
             // binary로 표현된 tar_val를 오른쪽에서부터 8bit(=1byte)씩 접근하면서, 메모리에 적재
             for (int i = 0; i < num_of_bytes; i++)
-                MEMORY[TA + 2 - i] = (tar_val & (0x000000FF << (8 * i))) >> (8 * i);
+                MEMORY[TA + 2 - i] = (val_to_push & (0x000000FF << (8 * i))) >> (8 * i);
             break;
         case 6:
             // binary로 표현된 tar_val를 오른쪽에서부터 8bit(=1byte)씩 접근하면서, 메모리에 적재
             for (int i = 0; i < num_of_bytes; i++)
-                MEMORY[TA + 5 - i] = (tar_val & (0x0000000000FF << (8 * i))) >> (8 * i);
+                MEMORY[TA + 5 - i] = (val_to_push & (0x0000000000FF << (8 * i))) >> (8 * i);
             break;
         default:
             break;
