@@ -422,7 +422,8 @@ OK_or_ERR pass2(char *filename, int PROGRAM_SIZE) {
         }
 
         // lst 파일에 기록
-        fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
+        if (type == _BASE) fprintf(fp_lst, "%3d %-4s %-35s\n", (LINE_NUM++) * LINE_NUM_SCALE, "", line + 5);
+        else fprintf(fp_lst, "%3d %-40s %-s\n", (LINE_NUM++) * LINE_NUM_SCALE, line, obj_code);
         //printf("-lst-%3d %-40s %-s\n", (LINE_NUM++)*LINE_NUM_SCALE, line, obj_code);
 
         // itm 파일을 읽고 parsing
