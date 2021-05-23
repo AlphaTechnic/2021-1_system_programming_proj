@@ -6,9 +6,18 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include<errno.h>
+#include <errno.h>
+#include <ctype.h>
 
 #define MAXARGS   128
+
+enum PIPE_TYPE {
+    FIRST = 0,
+    MIDDLE = 1,
+    LAST = 2
+};
+
+int NUM_OF_CALLS = 0;
 
 /* Function prototypes */
 void eval(char *cmdline);
@@ -16,6 +25,8 @@ int parseline(char *buf, int *argc, char **argv);
 int builtin_command(int argc, char **argv);
 
 void change_dir(int argc, char **argv);
+int pipe_command(char*cmd, char **argv, pid_t pid, int input, enum PIPE_TYPE pipe_type);
+void tokenize(char *cmd, char **argv);
 
 int main() {
     char cmdline[MAXLINE]; /* Command line */
@@ -38,30 +49,60 @@ int main() {
 void eval(char *cmdline) {
     char *argv[MAXARGS]; /* Argument list execve() */
     char buf[MAXLINE];   /* Holds modified command line */
-    int bg;              /* Should the job run in bg or fg? */
+    int bg;              /* Should the job pipe_command in bg or fg? */
     pid_t pid;           /* Process id */
     int argc;
-
+    int p_flag = 0;
+    int input = 0;
+    enum PIPE_TYPE p_type = FIRST;
 
     strcpy(buf, cmdline);
     bg = parseline(buf, &argc, argv);
+
+    // is pipelined?
+    char* cmd = cmdline;
+    char* bar_pos;
+    if ((bar_pos = strchr(cmd, '|')) != NULL) {
+        p_flag = 1;
+    }
+
     if (argv[0] == NULL)
         return;   /* Ignore empty lines */
-    if (!builtin_command(argc, argv)) { // quit -> exit(0), & -> ignore, other -> run
-        if ((pid = fork()) == 0) { // run child process
-            char filename[MAXARGS] = "/bin/";
-            strcat(filename, argv[0]);
+    if (!builtin_command(argc, argv)) { // quit -> exit(0), & -> ignore, other -> pipe_command
+        if (!p_flag) {
+            if ((pid = fork()) == 0) { // pipe_command child process
+                char filename[MAXARGS] = "/bin/";
+                strcat(filename, argv[0]);
 
-            if (execve(filename, argv, environ) < 0) {    //ex) /bin/ls ls -al &
-                printf("%s: Command not found.\n", argv[0]);
-                exit(0);
+                if (execve(filename, argv, environ) < 0) {    //ex) /bin/ls ls -al &
+                    printf("%s: Command not found.\n", argv[0]);
+                    exit(0);
+                }
             }
+        }
+
+        else { // pipeline command
+            while (bar_pos != NULL) {
+                *bar_pos = '\0';
+                input = pipe_command(cmd, argv, pid, input, p_type);
+
+                cmd = bar_pos + 1;
+                bar_pos = strchr(cmd, '|');
+                p_type = MIDDLE;
+            }
+            input = pipe_command(cmd, argv, pid, input, LAST);
+
+            // wait 처리
+            for (int i = 0; i < NUM_OF_CALLS - 1; i++) wait(NULL);
+            NUM_OF_CALLS = 0;
         }
 
         /* Parent waits for foreground job to terminate */
         if (!bg) {
             int status;
-            if (waitpid(pid, &status, 0) < 0)
+            //if (waitpid(pid, &status, 0) < 0)
+            //    unix_error("waitpid err!");
+            if (wait(NULL) < 0)
                 unix_error("waitpid err!");
         }
         else { //when there is background process!
@@ -71,7 +112,7 @@ void eval(char *cmdline) {
     return;
 }
 
-/* If first arg is a builtin command, run it and return true */
+/* If first arg is a builtin command, pipe_command it and return true */
 int builtin_command(int argc, char **argv) {
     if (!strcmp(argv[0], "quit") || (!strcmp(argv[0], "exit"))) /* quit command */
         exit(0);
@@ -112,7 +153,7 @@ int parseline(char *buf, int *argc, char **argv) {
     if ((*argc) == 0)  /* Ignore blank line */
         return 1;
 
-    /* Should the job run in the background? */
+    /* Should the job pipe_command in the background? */
     if ((bg = (*argv[(*argc) - 1] == '&')) != 0)
         argv[--(*argc)] = NULL;
 
@@ -126,4 +167,64 @@ void change_dir(int argc, char **argv) {
         printf("cd argument err!\n");
     }
     return;
+}
+
+int pipe_command(char*cmd, char **argv, pid_t pid, int input, enum PIPE_TYPE pipe_type){
+    tokenize(cmd, argv);
+    if (argv[0] != NULL) NUM_OF_CALLS++;
+
+    int fd[2];
+    pipe(fd);
+    pid = fork();
+
+    if (pid == 0) { // child
+        if (pipe_type == FIRST && input == 0){
+            dup2(fd[1], STDOUT_FILENO);
+        }
+        else if (pipe_type == MIDDLE && input != 0){
+            dup2(input, STDIN_FILENO);
+            dup2(fd[1], STDOUT_FILENO);
+        }
+        else{ // LAST
+            dup2(input, STDIN_FILENO);
+        }
+        if ((execvp(argv[0], argv)) == -1){
+            printf("execvp err!\n");
+            exit(1);
+        }
+    }
+
+    if (input != 0) close(input);
+    close(fd[1]);
+    if (pipe_type == LAST) close(fd[0]);
+    return fd[0];
+}
+
+void tokenize(char *cmd, char** argv){
+    while (isspace(*cmd)) cmd++;
+    char* next = strchr(cmd, ' ');
+    int i = 0;
+
+    while (next != NULL){
+        next[0] = '\0';
+        argv[i++] = cmd;
+        while (isspace(*(next + 1))) next++;
+        cmd = next + 1;
+        next = strchr(cmd, ' ');
+    }
+
+    if (cmd[0] != '\0') {
+        argv[i] = cmd;
+        next = strchr(cmd, '\n');
+        if (next[0] != '\0') next[0] = '\0';
+        i++;
+    }
+
+    // grep 명령과 함께 입력되는 쌍따움표 "" 혹은 따움표 '' 처리
+   if ((argv[i-1][0] == '\"' && argv[i-1][strlen(argv[i-1])-1] == '\"') ||
+           (argv[i-1][0] == '\'' && argv[i-1][strlen(argv[i-1])-1] == '\'')){
+        argv[i-1][strlen(argv[i-1])-1] = '\0';
+        argv[i-1] = &(argv[i-1][0]) + 1;
+    }
+    argv[i] = NULL;
 }
