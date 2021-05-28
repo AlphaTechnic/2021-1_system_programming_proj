@@ -26,12 +26,9 @@ typedef enum JOB_STATE{
 
 typedef struct JOB_info{
     int ind;
-    pid_t pid;
+    pid_t  pid;
     JOB_STATE state;
     char cmdline[MAXLINE];
-
-    // pipe_jobs의 0번째 index는 pipe command 의 소단위 명령 개수를 의미한다.
-    pid_t pipe_jobs[MAXJOBS];
 }JOB_info;
 JOB_info JOBS[MAXJOBS];
 
@@ -52,13 +49,11 @@ void sigtstp_handler(int sig);
 void sigchld_handler(int sig);
 
 void list_jobs();
-int push_job(int p_flag, pid_t pid, int state, char *cmdline);
+int push_job(pid_t pid, int state, char *cmdline);
 int delete_job(pid_t pid);
 int update_job(pid_t pid, int state);
 JOB_info *get_JOB_info_or_NULL(pid_t pid);
 void waitfg(pid_t pid);
-int aaa = 0;
-
 
 int main() {
     char cmdline[MAXLINE]; /* Command line */
@@ -73,7 +68,6 @@ int main() {
         JOBS[i].pid = 0;
         JOBS[i].state = _undefined;
         JOBS[i].cmdline[0] = '\0';
-        JOBS[i].pipe_jobs[0] = 0;
     }
 
     while (1) {
@@ -110,8 +104,6 @@ void eval(char *cmdline) {
 
     // is pipelined?
     char* cmd = cmdline;
-    char cmdline_cpy[MAXLINE];
-    strcpy(cmdline_cpy, cmdline);
     char* bar_pos;
     if ((bar_pos = strchr(cmd, '|')) != NULL) {
         p_flag = 1;
@@ -119,40 +111,30 @@ void eval(char *cmdline) {
 
     if (argv[0] == NULL)
         return;   /* Ignore empty lines */
-
     if (!builtin_command(argc, argv)) { // quit -> exit(0), & -> ignore, other -> pipe_command
         if (!p_flag) {
             if ((pid = fork()) == 0) { // child process
                 if (bg) {
-                    // BG job은 ctrl c, ctrl z에 반응하지 않도록 조정
+                    // BG job은 ctrl c, ctrl z에 반응하지 않음
                     Signal(SIGINT, SIG_IGN);
                     Signal(SIGTSTP, SIG_IGN);
                 }
 
-<<<<<<< HEAD
                 char filename[MAXARGS] = "/bin/";
                 strcat(filename, argv[0]);
                 if (execve(filename, argv, environ) < 0) {    //ex) /bin/ls ls -al &
-=======
-                if (execvp(argv[0], argv) < 0){
->>>>>>> retry1
-                    printf("Err! There's no command : \"%s\"\n", argv[0]);
-                    fflush(stdout);
+                    printf("%s: Command not found.\n", argv[0]);
                     exit(0);
                 }
+
             }
-<<<<<<< HEAD
-            push_job(p_flag, pid, (bg == 1 ? BG : FG), cmdline);
-=======
-            push_job(pid, (bg == 1? BG : FG), cmdline);
->>>>>>> retry1
+            push_job(pid, (bg == 1 ? BG : FG), cmdline);
             if (!bg){
-                //printf("pid : %d\n", pid);
+                printf("pid : %d\n", pid);
                 waitfg(pid);
             }
             else{
-                JOB_info* job_obj = get_JOB_info_or_NULL(pid);
-                printf("[%d] %d\n", job_obj->ind, pid);
+                printf("%d %s", pid, cmdline);
             }
         }
 
@@ -165,29 +147,38 @@ void eval(char *cmdline) {
                 bar_pos = strchr(cmd, '|');
                 p_type = MIDDLE;
             }
-            char* ptr;
-            if (ptr = (strchr(cmd, '&'))) *ptr = '\0';
             pipe_command(cmd, argv, input, LAST, &pid);
-<<<<<<< HEAD
-            push_job(p_flag, pid, (bg == 1 ? BG : FG), cmdline);
+            push_job(pid, (bg == 1 ? BG : FG), cmdline);
 
             // wait 처리
 //            for (int i = 0; i < NUM_OF_CALLS - 1; i++) wait(NULL);
 //            NUM_OF_CALLS = 0;
-=======
-            push_job(pid, (bg == 1? BG : FG), cmdline_cpy);
->>>>>>> retry1
 
             if (!bg){
-                //printf("pid : %d\n", pid);
+                printf("pid : %d\n", pid);
                 waitfg(pid);
-                //while (wait(NULL) > 0);
             }
             else{
-                JOB_info* job_obj = get_JOB_info_or_NULL(pid);
-                printf("[%d] %d\n", job_obj->ind, pid);
+                printf("%d %s", pid, cmdline);
             }
         }
+
+        /* Parent waits for foreground job to terminate */
+//        if (!bg) {
+//            int status;
+//            int return_val;
+//            if ((return_val = waitpid(pid, &status, 0)) < -1){
+//                printf("%d\n", pid);
+//                printf("%d\n", status);
+//                printf("%d\n", return_val);
+//                unix_error("waitpid err!");
+//            }
+//            if (wait(NULL) < 0)
+//                unix_error("waitpid err!");
+//        }
+//        else { //when there is background process!
+//            printf("%d %s", pid, cmdline);
+//        }
     }
 }
 
@@ -213,7 +204,7 @@ int builtin_command(int argc, char **argv) {
 
     // bg, fg, kill
     if (!strcmp(argv[0], "bg") || !strcmp(argv[0], "fg") || !strcmp(argv[0], "kill")) {
-
+        int pid;
 
         if (argv[1] == NULL) {
             printf("Argument err!\n");
@@ -222,14 +213,7 @@ int builtin_command(int argc, char **argv) {
 
         if (argv[1][0] == '%') argv[1] = &(argv[1][0]) + 1;
         int ind = atoi(argv[1]);
-<<<<<<< HEAD
-        if (!(JOBS[ind].pipe_jobs[0])){  // pipe command 아님
-            pid = JOBS[ind].pid;
-        }
-=======
-        int pid = JOBS[ind].pid;
-
->>>>>>> retry1
+        pid = JOBS[ind].pid;
         if (ind < 1 || ind >= MAXJOBS){
             printf("Job index err!\n");
             return 1;
@@ -239,7 +223,7 @@ int builtin_command(int argc, char **argv) {
 
         if (get_JOB_info_or_NULL(pid) != NULL) {
             if (!strcmp(cmd, "bg")) {
-                Kill(pid, SIGCONT);
+                Kill(pid, SIGSTOP);
                 update_job(pid, BG);
 
                 // [1]+ sleep 20 &
@@ -247,7 +231,7 @@ int builtin_command(int argc, char **argv) {
                 char buf[MAXLINE];
                 strncpy(buf, JOBS[ind].cmdline, last_ind);
                 buf[last_ind] = '\0';
-                printf("[%d]+  %s\n", ind, buf);
+                printf("[%d]+  %s &\n", ind, buf);
             }
             else if (!strcmp(cmd, "fg")) {
                 printf("%s", JOBS[ind].cmdline);
@@ -257,17 +241,10 @@ int builtin_command(int argc, char **argv) {
             }
             else if (!strcmp(cmd, "kill")) {
                 int status;
+                delete_job(pid);
                 if(waitpid(pid, &status, SIGKILL) < 0){
                     printf("%d\n", pid);
                     unix_error("waitfg: waitpid err!");
-                }
-                else{
-<<<<<<< HEAD
-                    printf("[%d]+  terminated  %s\n", JOBS[ind].ind, JOBS[ind].cmdline);
-=======
-                    printf("[%d]+  terminated  %s", JOBS[ind].ind, JOBS[ind].cmdline);
->>>>>>> retry1
-                    delete_job(pid);
                 }
             }
         }
@@ -353,7 +330,6 @@ int pipe_command(char*cmd, char **argv, int input, PIPE_TYPE pipe_type, pid_t *p
         else{ // LAST
             dup2(input, STDIN_FILENO);
         }
-
         if ((execvp(argv[0], argv)) == -1){
             printf("execvp err!\n");
             exit(1);
@@ -386,9 +362,9 @@ void tokenize(char *cmd, char** argv){
         i++;
     }
 
-    // grep 명령과 함께 입력되는 쌍따움표 "" 혹은 따움표에 대한 '' 처리
-   if ((argv[i-1][0] == '\"' && argv[i-1][strlen(argv[i-1])-1] == '\"') ||
-           (argv[i-1][0] == '\'' && argv[i-1][strlen(argv[i-1])-1] == '\'')){
+    // grep 명령과 함께 입력되는 쌍따움표 "" 혹은 따움표 '' 처리
+    if ((argv[i-1][0] == '\"' && argv[i-1][strlen(argv[i-1])-1] == '\"') ||
+        (argv[i-1][0] == '\'' && argv[i-1][strlen(argv[i-1])-1] == '\'')){
         argv[i-1][strlen(argv[i-1])-1] = '\0';
         argv[i-1] = &(argv[i-1][0]) + 1;
     }
@@ -398,13 +374,13 @@ void tokenize(char *cmd, char** argv){
 void sigint_handler(int sig){
     // catch SIGINT
     if (VERBOSE)
-        printf("SIGINT!!!!!!!!!\n");
+        printf("sigint_handler: shell caught SIGINT\n");
 }
 
 void sigtstp_handler(int sig){
     // catch SIGTSTP
     if (VERBOSE)
-        printf("SIGTSTP!!!!!!!\n");
+        printf("sigtstp_handler: shell caught SIGTSTP\n");
 }
 
 void sigchld_handler(int sig){
@@ -413,7 +389,7 @@ void sigchld_handler(int sig){
     int status;
 
     if (VERBOSE)
-        printf("SIGCLD!!!!!!!\n");
+        printf("sigchld_handler: entering \n");
 
     // WNOHANG
     // 기다리는 pid가 종료되지 않아서 즉시 종료 상태를 회수 할 수 없는 상황에서
@@ -433,24 +409,13 @@ void sigchld_handler(int sig){
 }
 
 
-int push_job(int p_flag, pid_t pid, int state, char *cmdline){
+int push_job(pid_t pid, int state, char *cmdline){
     for (int i = 1; i < MAXJOBS; i++){
         if (JOBS[i].pid == 0){
             JOBS[i].ind = i;
+            JOBS[i].pid = pid;
             JOBS[i].state = state;
             strcpy(JOBS[i].cmdline, cmdline);
-<<<<<<< HEAD
-            if (!p_flag){
-                JOBS[i].pid = pid;
-            }
-            else{
-                JOBS[i].pid = -1;
-                int ind = ++JOBS[i].pipe_jobs[0];
-                JOBS[i].pipe_jobs[ind] = pid;
-            }
-=======
-            JOBS[i].pid = pid;
->>>>>>> retry1
             return 1;
         }
     }
@@ -460,27 +425,12 @@ int push_job(int p_flag, pid_t pid, int state, char *cmdline){
 
 int delete_job(pid_t pid){
     for (int i = 1; i < MAXJOBS; i++){
-        if (JOBS[i].pid == pid) {
+        if (JOBS[i].pid == pid){
             JOBS[i].ind = 0;
             JOBS[i].pid = 0;
             JOBS[i].state = _undefined;
             JOBS[i].cmdline[0] = '\0';
-
             return 1;
-        }
-        else if (JOBS[i].pid == -1){ // pipe command를 삭제하는 경우
-            for (int j = 1; j <= JOBS[i].pipe_jobs[0]; j++){
-                if (JOBS[i].pipe_jobs[j] == pid){
-                    JOBS[i].pipe_jobs[j] = 0;
-                    JOBS[i].pipe_jobs[0]--;
-                    if (JOBS[i].pipe_jobs[0]){
-                        JOBS[i].ind = 0;
-                        JOBS[i].pid = 0;
-                        JOBS[i].state = _undefined;
-                        JOBS[i].cmdline[0] = '\0';
-                    }
-                }
-            }
         }
     }
     return 0;
@@ -490,20 +440,7 @@ int update_job(pid_t pid, int state){
     for(int i = 1; i < MAXJOBS; i++){
         if (JOBS[i].pid == pid){
             JOBS[i].state = state;
-            if (state == BG){
-                char buf[10] = " &\n";
-                JOBS[i].cmdline[strlen(JOBS[i].cmdline) -1] = '\0';
-                strcat(JOBS[i].cmdline, buf);
-            }
             return 1;
-        }
-        else if (JOBS[i].pid == -1){
-            for (int j = 1; j <= JOBS[i].pipe_jobs[0]; j++){
-                if (JOBS[i].pipe_jobs[j] == pid){
-                    JOBS[i].state = state;
-                    return 1;
-                }
-            }
         }
     }
     printf("Can't find job %d\n", pid);
@@ -514,13 +451,6 @@ JOB_info *get_JOB_info_or_NULL(pid_t pid){
     for (int i = 1; i < MAXJOBS; i++){
         if (JOBS[i].pid == pid){
             return &(JOBS[i]);
-        }
-        else if (JOBS[i].pid == -1){ // pipe_line jobs
-            for (int j = 1; j < JOBS[i].pipe_jobs[0]; j++){
-                if (JOBS[i].pipe_jobs[j] == pid){
-                    return &(JOBS[i]);
-                }
-            }
         }
     }
     return NULL;
@@ -547,7 +477,7 @@ void list_jobs(){
                     sprintf(buf, "%sStopped                 ", buf);
                     break;
                 default:
-                    sprintf(buf, "%sinternal err!: job[%d].state=%d ", buf, i, JOBS[i].state);
+                    sprintf(buf, "%sinternal error: job[%d].state=%d ", buf, i, JOBS[i].state);
             }
             /* print job command line */
             sprintf(buf, "%s%s", buf, JOBS[i].cmdline);
@@ -569,6 +499,7 @@ void waitfg(pid_t pid){
     // WUNTRACED : 중단된 child 프로세스가 stopped인지 아닌지를 status에 기록해줌.
     JOB_info * job_info = get_JOB_info_or_NULL(pid);
     if(waitpid(pid, &status, WUNTRACED) < 0){
+        printf("%d\n", pid);
         unix_error("waitfg: waitpid err!");
     }
 
@@ -579,6 +510,7 @@ void waitfg(pid_t pid){
         // WIFSTOPPED가 non-zero 일경우에만 사용가능
         // strsignal : 인자로 받은 시그널을 가리키는 이름을 문자열로 return
         // 인자로 받은 시그널이 없으면 NULL을 return
+        printf("--!\n");
         sprintf(buf, "\n[%d]+  ", job_info->ind);
         sprintf(buf, "%s%s", buf, strsignal(WSTOPSIG(status)));
         sprintf(buf, "%s                 %s", buf, job_info->cmdline);
@@ -586,8 +518,9 @@ void waitfg(pid_t pid){
 
         update_job(pid, ST);
     }
-    // FG job이 terminate되면, JOBS에서 지운다.
+        // FG job이 terminate되면, JOBS에서 지운다.
     else {
+        printf("-!!\n");
         /* check if job was terminated by an uncaught signal */
         if (WIFSIGNALED(status)) {
             sprintf(buf, "\n[%d]- Terminated by signal", job_info->ind);
