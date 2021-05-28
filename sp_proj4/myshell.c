@@ -121,7 +121,7 @@ void eval(char *cmdline) {
         if (!p_flag) {
             if ((pid = fork()) == 0) { // child process
                 if (bg) {
-                    // BG job은 ctrl c, ctrl z에 반응하지 않음
+                    // BG job은 ctrl c, ctrl z에 반응하지 않도록 조정
                     Signal(SIGINT, SIG_IGN);
                     Signal(SIGTSTP, SIG_IGN);
                 }
@@ -129,11 +129,9 @@ void eval(char *cmdline) {
                 char filename[MAXARGS] = "/bin/";
                 strcat(filename, argv[0]);
                 if (execve(filename, argv, environ) < 0) {    //ex) /bin/ls ls -al &
-                    printf("%s: Command not found.\n", argv[0]);
+                    printf("Err! There's no command : \"%s\"\n", argv[0]);
+                    fflush(stdout);
                     exit(0);
-                }
-                else{
-                    printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
                 }
             }
             push_job(p_flag, pid, (bg == 1 ? BG : FG), cmdline);
@@ -142,7 +140,8 @@ void eval(char *cmdline) {
                 waitfg(pid);
             }
             else{
-                printf("%d %s", pid, cmdline);
+                JOB_info* job_obj = get_JOB_info_or_NULL(pid);
+                printf("[%d] %d\n", job_obj->ind, pid);
             }
         }
 
