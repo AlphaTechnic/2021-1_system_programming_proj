@@ -12,6 +12,7 @@
 #define MAXJOBS   32
 
 // pipe의 유형을 3가지로 분류 (머리 - 몸통 - 꼬리)
+// pipe structure : FIRST - MIDDLE - ... - MIDDLE - LAST
 typedef enum PIPE_TYPE {
     FIRST = 0,
     MIDDLE = 1,
@@ -473,8 +474,6 @@ void list_jobs(){
     char buf[MAXLINE];
     for (int i = 1; i < MAXJOBS; i++){
         if (JOBS[i].pid != 0){
-            /* print pid */
-            //printf("[%d]+  ", i);
             sprintf(buf, "[%d]+  ", i);
 
             /* print job state */
@@ -489,12 +488,12 @@ void list_jobs(){
                     sprintf(buf, "%sStopped                 ", buf);
                     break;
                 default:
-                    sprintf(buf, "%sinternal err!: job[%d].state=%d ", buf, i, JOBS[i].state);
+                    printf("Internal err!\n");
+                    return;
             }
-            /* print job command line */
+
             sprintf(buf, "%s%s", buf, JOBS[i].cmdline);
             printf("%s", buf);
-            //[1]+  Running                 sleep 30 &
         }
     }
 }
@@ -514,7 +513,7 @@ void waitfg(pid_t pid){
         unix_error("waitpid err!");
     }
 
-    // 1. "stop 시그널"을 받은 자식에 대 처리
+    // 1. "stop 시그널"을 받은 자식에 대한 처리
     // JOBS에서 중단된 FG의 state를 변경
     // WIFSTOPPED : 반환의 원인이 된 자식프로세스가 현재 "정지"되어 있다면 true(1)을 반환.
     if(WIFSTOPPED(status)){
@@ -529,7 +528,7 @@ void waitfg(pid_t pid){
         update_job(pid, ST);
     }
 
-    // 2. "terminate 시그널"을 받은 자식에 대한 처리
+    // 2. "terminate 시그널"을 받은 자식에 대 처리
     else {
         // WIFSIGNALED(status) : 자식프로세스가 어떤 신호때문에 종료되었다면 참을 반환
         if (WIFSIGNALED(status)) {
