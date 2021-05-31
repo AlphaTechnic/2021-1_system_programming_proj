@@ -88,8 +88,8 @@ void eval(char *cmdline) {
             }
         }
 
-        // pipeline command
-        // pipe structure : FIRST - MIDDLE - ... - MIDDLE - LAST
+            // pipeline command
+            // pipe structure : FIRST - MIDDLE - ... - MIDDLE - LAST
         else {
             while (bar_pos != NULL) {
                 *bar_pos = '\0';
@@ -442,7 +442,7 @@ void waitfg(pid_t pid){
     // WUNTRACED : 중단된 child 프로세스가 stopped인지 아닌지를 status에 기록해줌.
     JOB_info * job_info = get_JOB_info_or_NULL(pid);
     if(waitpid(pid, &status, WUNTRACED) < 0){
-       unix_error("waitpid err!");
+        unix_error("waitpid err!");
     }
 
     // 1. "stop 시그널"을 받은 자식에 대한 처리
@@ -459,7 +459,7 @@ void waitfg(pid_t pid){
         update_job(pid, ST);
     }
 
-    // 2. "terminate 시그널"을 받은 자식에 대한 처리
+        // 2. "terminate 시그널"을 받은 자식에 대한 처리
     else {
         // WIFSIGNALED(status) : 자식프로세스가 어떤 신호때문에 종료되었다면 참을 반환
         if (WIFSIGNALED(status)) {
