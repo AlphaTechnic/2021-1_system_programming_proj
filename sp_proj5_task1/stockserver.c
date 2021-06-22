@@ -19,6 +19,20 @@ void init_pool(int listenfd, pool *p);
 void add_client(int connfd, pool *p);
 void check_clients(pool *p);
 
+typedef struct node{
+    int ID;
+    int left_stock;
+    int price;
+
+    struct node *left, *right, *parent;
+}node;
+
+node* search_node(node *tree, int id_to_search);
+void push_node(node** tree, int id_to_push, int left_stock_to_push, int price_to_push);
+void buy(node** tree, int id_to_buy, int num);
+void sell(node** tree, int id_to_sell, int num);
+
+
 int byte_cnt = 0; /* Counts total bytes received by server */
 int main(int argc, char **argv)
 {
@@ -112,6 +126,7 @@ void check_clients(pool *p){
                 byte_cnt += n;
                 printf("Server received %d (%d total) bytes on fd %d\n", n, byte_cnt, connfd);
                 Rio_writen(connfd, buf, n);
+                printf("%s\n", buf);
             }
 
             /* EOF detected, remove descriptor from pool */
@@ -122,4 +137,81 @@ void check_clients(pool *p){
             }
         }
     }
+}
+
+
+node* search_node(node *tree, int id_to_search){
+    while (tree != NULL && tree->ID != id_to_search){
+        if (tree->ID > id_to_search) tree = tree->left;
+        else tree = tree -> right;
+    }
+    return tree;
+}
+
+
+void push_node(node** tree, int id_to_push, int left_stock_to_push, int price_to_push){
+    node* new_node = (node*)malloc(sizeof(node));
+    node* cur_node = *tree;
+
+    // create
+    new_node->ID = id_to_push;
+    new_node->left_stock = left_stock_to_push;
+    new_node->price = price_to_push;
+    new_node->left = new_node->right = new_node->parent = NULL;
+
+    // if tree is empty
+    if (cur_node == NULL){
+        *tree = new_node;
+        return;
+    }
+
+    // search_node position to insert
+    while (cur_node != NULL){
+        new_node->parent = cur_node;
+
+        if (cur_node->ID > id_to_push) cur_node = cur_node -> left;
+        else cur_node = cur_node->right;
+    }
+
+    // insert!
+    if ((new_node->parent)->ID > id_to_push) (new_node->parent)->left = new_node;
+    else (new_node->parent)->right = new_node;
+}
+
+
+void buy(node** tree, int id_to_buy, int num){
+    node* cur_node = NULL;
+
+    // search the node to buy
+    cur_node = search_node(*tree, id_to_buy);
+
+    // if there is no id to delete
+    if(cur_node == NULL){
+        printf("There is no such ID!\n");
+        return;
+    }
+
+    if ((cur_node->left_stock - num) < 0 ){
+        printf("Not enough left stocks!\n");
+        return;
+    }
+
+    cur_node->left_stock = cur_node->left_stock - num;
+    return;
+}
+
+void sell(node** tree, int id_to_sell, int num){
+    node* cur_node = NULL;
+
+    // search the node to buy
+    cur_node = search_node(*tree, id_to_sell);
+
+    // if there is no id to delete
+    if(cur_node == NULL){
+        printf("There is no such ID!\n");
+        return;
+    }
+
+    cur_node->left_stock = cur_node->left_stock + num;
+    return;
 }
