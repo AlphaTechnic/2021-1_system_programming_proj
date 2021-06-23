@@ -37,14 +37,13 @@ typedef struct stack{
 void init_pool(int listenfd, pool *p);
 void add_client(int connfd, pool *p);
 void check_clients(pool *p, node* tree);
+void parse_command(char* buf, char** argv);
 
 node* search_node(node *tree, int id_to_search);
 void push_node(node** tree, int id_to_push, int left_stock_to_push, int price_to_push);
 void buy(int connfd, node** tree, int id_to_buy, int num);
 void sell(int connfd, node** tree, int id_to_sell, int num);
-void parse_command(char* buf, char** argv);
-void show_nodes(int connfd, node *tree);
-void store_nodes(node *tree);
+void show_node(int connfd, node *tree);
 
 int is_empty(stack* st);
 int is_full(stack* st);
@@ -58,7 +57,7 @@ int main(int argc, char **argv)
     int listenfd, connfd;
     socklen_t clientlen;
     struct sockaddr_storage clientaddr;  /* Enough space for any address */  //line:netp:echoserveri:sockaddrstorage
-    char client_hostname[MAXLINE], client_port[MAXLINE];
+    //char client_hostname[MAXLINE], client_port[MAXLINE];
     static pool pool;
 
     if (argc != 2) {
@@ -67,24 +66,15 @@ int main(int argc, char **argv)
     }
 
     // init BINARY_TREE
-    FILE* fp = fopen("stock.txt", "r");
-    char line[MAXLINE];
-    char *line_split[MAXARGS];
-
-    while (1){
-        if (fgets(line, MAXLINE, fp) == NULL) break;
-        parse_command(line, line_split);
-        push_node(&BINARY_TREE, atoi(line_split[0]), atoi(line_split[1]), atoi(line_split[2]));
-        if (feof(fp)) {
-            fclose(fp);
-            break;
-        }
-    }
+    push_node(&BINARY_TREE, 1, 7, 1000);
+    push_node(&BINARY_TREE, 5, 3, 3700);
+    push_node(&BINARY_TREE, 3, 10, 1200);
+    push_node(&BINARY_TREE, 4, 8, 5000);
+    push_node(&BINARY_TREE, 2, 6, 20000);
 
 
     listenfd = Open_listenfd(argv[1]);
     init_pool(listenfd, &pool);
-
     while (1) {
         /* Wait for listening/connected descriptor(s) to become ready */
         pool.ready_set = pool.read_set;
@@ -94,9 +84,6 @@ int main(int argc, char **argv)
         if (FD_ISSET(listenfd, &pool.ready_set)){
             clientlen = sizeof(struct sockaddr_storage);
             connfd = Accept(listenfd, (SA*)&clientaddr, &clientlen);
-
-            Getnameinfo((SA*)&clientaddr, clientlen, client_hostname, MAXLINE, client_port, MAXLINE, 0);
-            printf("Connected to (%s, %s)\n", client_hostname, client_port);
             add_client(connfd, &pool);
         }
 
@@ -164,14 +151,9 @@ void check_clients(pool *p, node* tree){
             p->nready--;
             if((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0){
                 printf("server received %d bytes\n", n);
-                if (n == 1) {
-                    Rio_writen(connfd, buf, n);
-                    continue;
-                }
-
                 parse_command(buf, argv);
                 if (!strcmp(argv[0], "exit")){
-                    //printf("exit 블럭 진입!\n");
+                    printf("exit 블럭 진입!\n");
                     strcpy(buf, "exit");
                     Rio_writen(connfd, buf, strlen(buf));
 
@@ -180,15 +162,15 @@ void check_clients(pool *p, node* tree){
                     p->clientfd[i] = -1;
                 }
                 if (!strcmp(argv[0], "show")){
-                    //printf("show 블럭 진입!\n");
-                    show_nodes(connfd, tree);
+                    printf("show 블럭 진입!\n");
+                    show_node(connfd, tree);
                 }
                 else if (!strcmp(argv[0], "buy")){
-                    //printf("buy 블럭 진입!\n");
+                    printf("buy 블럭 진입!\n");
                     buy(connfd, &tree, atoi(argv[1]), atoi(argv[2]));
                 }
                 else if (!strcmp(argv[0], "sell")){
-                    //printf("sell 블럭 진입!\n");
+                    printf("sell 블럭 진입!\n");
                     sell(connfd, &tree, atoi(argv[1]), atoi(argv[2]));
                 }
                 //Rio_writen(connfd, buf, n);
@@ -196,26 +178,10 @@ void check_clients(pool *p, node* tree){
 
             /* EOF detected, remove descriptor from pool */
             else{
-                //printf("close close close close close close\n");
+                printf("close close close close close close\n");
                 Close(connfd);
                 FD_CLR(connfd, &p->read_set);
                 p->clientfd[i] = -1;
-
-                int connection_flag = 0;
-                for (int i = 0; i <FD_SETSIZE; i++) {
-                    if (p->clientfd[i] != -1){
-                        connection_flag = 1;
-                        break;
-                    }
-                }
-                if (connection_flag){
-                    continue;
-                }
-                else{
-                    // 텍스트파일에 저장
-                    printf("저장저장저장\n");
-                    store_nodes(tree);
-                }
             }
         }
     }
@@ -289,10 +255,6 @@ void buy(int connfd, node** tree, int id_to_buy, int num){
     }
 
     cur_node->left_stock = cur_node->left_stock - num;
-
-    sprintf(tmp, "[buy] success\n");
-    strcat(buf, tmp);
-    Rio_writen(connfd, buf, strlen(buf));
 }
 
 
@@ -314,10 +276,6 @@ void sell(int connfd, node** tree, int id_to_sell, int num){
     }
 
     cur_node->left_stock = cur_node->left_stock + num;
-
-    sprintf(tmp, "[sell] success\n");
-    strcat(buf, tmp);
-    Rio_writen(connfd, buf, strlen(buf));
 }
 
 
@@ -340,7 +298,7 @@ void parse_command(char* buf, char** argv){
 }
 
 
-void show_nodes(int connfd, node *tree){
+void show_node(int connfd, node *tree){
     if (tree == NULL) return;
 
     char buf[MAXLINE];
@@ -363,38 +321,9 @@ void show_nodes(int connfd, node *tree){
     // 마지막 line이라는 표식
     buf[strlen(buf)-1] = 'E';
     buf[strlen(buf)] = '\n';
-    //printf("%s", buf);
+    printf("%s", buf);
 
     Rio_writen(connfd, buf, strlen(buf));
-}
-
-void store_nodes(node *tree){
-    FILE* fp = fopen("stock.txt", "w");
-
-    if (tree == NULL) {
-        fclose(fp);
-        return;
-    }
-
-    char buf[MAXLINE];
-    char tmp[MAXLINE];
-    strcpy(buf, "");
-
-    stack* st = malloc(sizeof(stack));
-    st->top = -1;
-
-    push(st, tree);
-    while(st->top != -1){
-        tree = pop(st);
-        //printf("%d %d %d\n", tree->ID, tree->left_stock, tree->price);
-        sprintf(tmp, "%d %d %d\n", tree->ID, tree->left_stock, tree->price);
-        strcat(buf, tmp);
-        if (tree->right != NULL) push(st, tree->right);
-        if (tree->left != NULL) push(st, tree->left);
-    }
-    //printf("%s\n", buf);
-    fputs(buf, fp);
-    fclose(fp);
 }
 
 int is_empty(stack* st){
