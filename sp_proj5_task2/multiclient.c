@@ -1,13 +1,16 @@
 #include "csapp.h"
 #include <time.h>
 
-#define MAX_CLIENT 100
+#define MAX_CLIENT 200
 #define ORDER_PER_CLIENT 10
 #define STOCK_NUM 10
 #define BUY_SELL_MAX 10
 
 int main(int argc, char **argv) 
 {
+    clock_t start, end;
+    start = clock();
+
 	pid_t pids[MAX_CLIENT];
 	int runprocess = 0, status, i;
 
@@ -90,7 +93,7 @@ int main(int argc, char **argv)
 				Rio_readlineb(&rio, buf, MAXLINE);
 				Fputs(buf, stdout);
 
-				usleep(1000000);
+				//usleep(1000000);
 			}
 			// 사용자가 마지막에 exit을 입력했다는 가정
 			Close(clientfd);
@@ -108,17 +111,8 @@ int main(int argc, char **argv)
 		waitpid(pids[i], &status, 0);
 	}
 
-	/*clientfd = Open_clientfd(host, port);
-	Rio_readinitb(&rio, clientfd);
-
-	while (Fgets(buf, MAXLINE, stdin) != NULL) {
-		Rio_writen(clientfd, buf, strlen(buf));
-		Rio_readlineb(&rio, buf, MAXLINE);
-		Fputs(buf, stdout);
-	}
-
-	Close(clientfd); //line:netp:echoclient:close
-	exit(0);*/
+    end = clock();
+	printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
 
 	return 0;
 }

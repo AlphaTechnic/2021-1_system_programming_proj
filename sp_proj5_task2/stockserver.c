@@ -2,8 +2,8 @@
 
 #define MAXARGS 5
 #define MAXSTOCK 1024
-#define NTHREADS  4
-#define SBUFSIZE  16
+#define NTHREADS  1024
+#define SBUFSIZE  1024
 
 // connfd들을 관리하기 위한 구조체 선언
 typedef struct {
