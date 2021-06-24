@@ -362,7 +362,7 @@ void sell(int connfd, node** tree, int id_to_sell, int num){
     V(&w);
 
     // 매수 성공 메세지를 보냄
-    sprintf(tmp, "[buy] success\n");
+    sprintf(tmp, "[sell] success\n");
     strcat(buf, tmp);
     Rio_writen(connfd, buf, strlen(buf));
 }
