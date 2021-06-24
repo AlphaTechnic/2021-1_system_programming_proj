@@ -8,8 +8,8 @@
 
 int main(int argc, char **argv) 
 {
-    clock_t start, end;
-    start = clock();
+    //clock_t start, end;
+    //start = clock();
 
 	pid_t pids[MAX_CLIENT];
 	int runprocess = 0, status, i;
@@ -111,8 +111,8 @@ int main(int argc, char **argv)
 		waitpid(pids[i], &status, 0);
 	}
 
-    end = clock();
-	printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
+    //end = clock();
+	//printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
 
 	return 0;
 }
