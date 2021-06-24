@@ -36,14 +36,27 @@ int main(int argc, char **argv)
 			printf("child %ld\n", (long)getpid());
 
 			clientfd = Open_clientfd(host, port);
-			Rio_readinitb(&rio, clientfd);
 			srand((unsigned int) getpid());
 
 			for(i=0;i<ORDER_PER_CLIENT;i++){
+                Rio_readinitb(&rio, clientfd);
 				int option = rand() % 3;
 				
 				if(option == 0){//show
 					strcpy(buf, "show\n");
+					printf("%s", buf);
+                    Rio_writen(clientfd, buf, strlen(buf));
+                    while(1){
+                        Rio_readlineb(&rio, buf, MAXLINE);
+                        if (buf[strlen(buf)-2] == 'E'){
+                            buf[strlen(buf)-2] = '\0';
+                            Fputs(buf, stdout);
+                            printf("\n");
+                            break;
+                        }
+                        Fputs(buf, stdout);
+                    }
+                    continue;
 				}
 				else if(option == 1){//buy
 					int list_num = rand() % STOCK_NUM + 1;
@@ -56,6 +69,7 @@ int main(int argc, char **argv)
 					sprintf(tmp, "%d", num_to_buy);
 					strcat(buf, tmp);
 					strcat(buf, "\n");
+                    printf("%s", buf);
 				}
 				else if(option == 2){//sell
 					int list_num = rand() % STOCK_NUM + 1; 
@@ -68,6 +82,7 @@ int main(int argc, char **argv)
 					sprintf(tmp, "%d", num_to_sell);
 					strcat(buf, tmp);
 					strcat(buf, "\n");
+                    printf("%s", buf);
 				}
 				//strcpy(buf, "buy 1 2\n");
 			
@@ -77,7 +92,7 @@ int main(int argc, char **argv)
 
 				usleep(1000000);
 			}
-
+			// 사용자가 마지막에 exit을 입력했다는 가정
 			Close(clientfd);
 			exit(0);
 		}
@@ -92,7 +107,6 @@ int main(int argc, char **argv)
 	for(i=0;i<num_client;i++){
 		waitpid(pids[i], &status, 0);
 	}
-
 
 	/*clientfd = Open_clientfd(host, port);
 	Rio_readinitb(&rio, clientfd);

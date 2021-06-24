@@ -21,11 +21,11 @@ int main(int argc, char **argv)
     Rio_readinitb(&rio, clientfd);
 
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
-	Rio_writen(clientfd, buf, strlen(buf));
-	Rio_readlineb(&rio, buf, MAXLINE);
-	Fputs(buf, stdout);
-    }
-    Close(clientfd); //line:netp:echoclient:close
-    exit(0);
+        Rio_writen(clientfd, buf, strlen(buf));
+        Rio_readlineb(&rio, buf, MAXLINE);
+        Fputs(buf, stdout);
+        }
+        Close(clientfd); //line:netp:echoclient:close
+        exit(0);
 }
 /* $end echoclientmain */

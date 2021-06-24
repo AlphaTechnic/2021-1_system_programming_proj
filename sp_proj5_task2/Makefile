@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS=-O2 -Wall
+CFLAGS = -O0 -g -Wall
 LDLIBS = -lpthread
 
 all: multiclient stockclient stockserver
