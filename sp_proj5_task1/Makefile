@@ -1,4 +1,5 @@
 CC = gcc
+OPTIONS = -ggdb
 CFLAGS=-O2 -Wall
 LDLIBS = -lpthread
 

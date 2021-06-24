@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 				
 				if(option == 0){//show
 					strcpy(buf, "show\n");
+					printf("%s", buf);
                     Rio_writen(clientfd, buf, strlen(buf));
                     while(1){
                         Rio_readlineb(&rio, buf, MAXLINE);
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
 					sprintf(tmp, "%d", num_to_buy);
 					strcat(buf, tmp);
 					strcat(buf, "\n");
+                    printf("%s", buf);
 				}
 				else if(option == 2){//sell
 					int list_num = rand() % STOCK_NUM + 1; 
@@ -80,6 +82,7 @@ int main(int argc, char **argv)
 					sprintf(tmp, "%d", num_to_sell);
 					strcat(buf, tmp);
 					strcat(buf, "\n");
+                    printf("%s", buf);
 				}
 				//strcpy(buf, "buy 1 2\n");
 			
@@ -104,18 +107,6 @@ int main(int argc, char **argv)
 	for(i=0;i<num_client;i++){
 		waitpid(pids[i], &status, 0);
 	}
-
-	/*clientfd = Open_clientfd(host, port);
-	Rio_readinitb(&rio, clientfd);
-
-	while (Fgets(buf, MAXLINE, stdin) != NULL) {
-		Rio_writen(clientfd, buf, strlen(buf));
-		Rio_readlineb(&rio, buf, MAXLINE);
-		Fputs(buf, stdout);
-	}
-
-	Close(clientfd); //line:netp:echoclient:close
-	exit(0);*/
 
 	return 0;
 }

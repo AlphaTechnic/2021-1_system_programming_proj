@@ -1,15 +1,10 @@
-
-/*
- * echoserveri.c - An iterative echo server 
- */
 /* $begin echoserverimain */
 #include "csapp.h"
 
 #define MAXARGS 5
 #define MAXSTOCK 1024
 
-
-// void echo(int connfd);
+// pool 구조체
 typedef struct { /* Represents a pool of connected descriptors */
     int maxfd;          /* Largest descriptor in read_set */
     fd_set read_set;    /* Set of all active descriptors */
@@ -20,6 +15,7 @@ typedef struct { /* Represents a pool of connected descriptors */
     rio_t clientrio[FD_SETSIZE];/* Set of active read buffers */
 }pool;
 
+// 주식 종목의 정보를 가지는 node 정의
 typedef struct node{
     int ID;
     int left_stock;
@@ -29,32 +25,34 @@ typedef struct node{
 }node;
 node* BINARY_TREE = NULL;
 
+// 이진 트리 탐색을 위한 stack 자료구조
 typedef struct stack{
     node* arr[MAXSTOCK];
     int top;
 }stack;
 
+// client의 connection관리, client의 query 수행
+void parse_command(char* buf, char** argv);
 void init_pool(int listenfd, pool *p);
 void add_client(int connfd, pool *p);
-void check_clients(pool *p, node* tree);
+void response(pool *p, node* tree);
 
+// 이진 트리를 탐색하여 client의 query를 수행하는 함수들
 node* search_node(node *tree, int id_to_search);
 void push_node(node** tree, int id_to_push, int left_stock_to_push, int price_to_push);
 void buy(int connfd, node** tree, int id_to_buy, int num);
 void sell(int connfd, node** tree, int id_to_sell, int num);
-void parse_command(char* buf, char** argv);
 void show_nodes(int connfd, node *tree);
 void store_nodes(node *tree);
 
+// functions for stack
 int is_empty(stack* st);
 int is_full(stack* st);
 void push(stack* st, node* node_ptr);
 node* pop(stack* st);
 
 
-//int byte_cnt = 0; /* Counts total bytes received by server */
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     int listenfd, connfd;
     socklen_t clientlen;
     struct sockaddr_storage clientaddr;  /* Enough space for any address */  //line:netp:echoserveri:sockaddrstorage
@@ -66,11 +64,10 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    // init BINARY_TREE
+    // 디스크에 백업되어있는 stock 정보들을 프로그램에 올린다.
     FILE* fp = fopen("stock.txt", "r");
     char line[MAXLINE];
     char *line_split[MAXARGS];
-
     while (1){
         if (fgets(line, MAXLINE, fp) == NULL) break;
         parse_command(line, line_split);
@@ -81,7 +78,7 @@ int main(int argc, char **argv)
         }
     }
 
-
+    // network programming
     listenfd = Open_listenfd(argv[1]);
     init_pool(listenfd, &pool);
 
@@ -100,20 +97,29 @@ int main(int argc, char **argv)
             add_client(connfd, &pool);
         }
 
-        /* Echo a text line from each ready connected descriptor */
-        check_clients(&pool, BINARY_TREE);
-
-//        clientlen = sizeof(struct sockaddr_storage);
-//        connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-//        Getnameinfo((SA *) &clientaddr, clientlen, client_hostname, MAXLINE,
-//                    client_port, MAXLINE, 0);
-//        printf("Connected to (%s, %s)\n", client_hostname, client_port);
-//        echo(connfd);
-//        Close(connfd);
+        /* 클라이언트 query에 응답 */
+        response(&pool, BINARY_TREE);
     }
-    //exit(0);
 }
-/* $end echoserverimain */
+
+// 사용자 명령을 parsing하기 위한 함수
+void parse_command(char* buf, char** argv){
+    char *delim;                // points to first space delimiter
+    int ind = 0;
+
+    buf[strlen(buf)-1] = ' ';   // replace triling '\n' with space
+    while (*buf && (*buf == ' ')) buf++;
+
+    // build the argv list
+    while ((delim = strchr(buf, ' '))){
+        argv[ind++] = buf;
+        *delim = '\0';
+        buf = delim + 1;
+        while(*buf && (*buf == ' ')) // ignore space
+            buf++;
+    }
+    argv[ind] = NULL;
+}
 
 
 void init_pool(int listenfd, pool *p){
@@ -126,6 +132,7 @@ void init_pool(int listenfd, pool *p){
     FD_ZERO(&p->read_set);
     FD_SET(listenfd, &p->read_set);
 }
+
 
 void add_client(int connfd, pool *p){
     int i;
@@ -149,7 +156,7 @@ void add_client(int connfd, pool *p){
     if (i == FD_SETSIZE) app_error("add_client error: Too many clients");
 }
 
-void check_clients(pool *p, node* tree){
+void response(pool *p, node* tree){
     int i, connfd, n;
     char buf[MAXLINE];
     char *argv[MAXARGS];
@@ -164,14 +171,14 @@ void check_clients(pool *p, node* tree){
             p->nready--;
             if((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0){
                 printf("server received %d bytes\n", n);
-                if (n == 1) {
+                if (n == 1) { // 클라이언트가 enter를 입력한 경우
                     Rio_writen(connfd, buf, n);
                     continue;
                 }
 
+                // parse query of client
                 parse_command(buf, argv);
                 if (!strcmp(argv[0], "exit")){
-                    //printf("exit 블럭 진입!\n");
                     strcpy(buf, "exit");
                     Rio_writen(connfd, buf, strlen(buf));
 
@@ -180,18 +187,14 @@ void check_clients(pool *p, node* tree){
                     p->clientfd[i] = -1;
                 }
                 if (!strcmp(argv[0], "show")){
-                    //printf("show 블럭 진입!\n");
                     show_nodes(connfd, tree);
                 }
                 else if (!strcmp(argv[0], "buy")){
-                    //printf("buy 블럭 진입!\n");
                     buy(connfd, &tree, atoi(argv[1]), atoi(argv[2]));
                 }
                 else if (!strcmp(argv[0], "sell")){
-                    //printf("sell 블럭 진입!\n");
                     sell(connfd, &tree, atoi(argv[1]), atoi(argv[2]));
                 }
-                //Rio_writen(connfd, buf, n);
             }
 
             /* EOF detected, remove descriptor from pool */
@@ -201,19 +204,21 @@ void check_clients(pool *p, node* tree){
                 FD_CLR(connfd, &p->read_set);
                 p->clientfd[i] = -1;
 
+                // 남아있는 connection이 있는지 점검하고 하나도 없을 경우,
+                // 이진 트리 구조로 프로그램에 저장된 주식 정보들을 디스크에 백업
                 int connection_flag = 0;
-                for (int i = 0; i <FD_SETSIZE; i++) {
+                for (int i = 0; i < FD_SETSIZE; i++) {
                     if (p->clientfd[i] != -1){
                         connection_flag = 1;
                         break;
                     }
                 }
-                if (connection_flag){
+
+                if (connection_flag){ // 아직 connection이 있다.
                     continue;
                 }
                 else{
-                    // 텍스트파일에 저장
-                    printf("저장저장저장\n");
+                    //printf("저장저장저장\n");
                     store_nodes(tree);
                 }
             }
@@ -222,6 +227,8 @@ void check_clients(pool *p, node* tree){
 }
 
 
+/*--------------------------------------------------------------------------------------*/
+// 아래는 이진 트리를 탐색하여 client의 query를 수행하는 함수들
 /*--------------------------------------------------------------------------------------*/
 node* search_node(node *tree, int id_to_search){
     while (tree != NULL && tree->ID != id_to_search){
@@ -236,7 +243,7 @@ void push_node(node** tree, int id_to_push, int left_stock_to_push, int price_to
     node* new_node = (node*)malloc(sizeof(node));
     node* cur_node = *tree;
 
-    // create
+    // create node
     new_node->ID = id_to_push;
     new_node->left_stock = left_stock_to_push;
     new_node->price = price_to_push;
@@ -280,6 +287,8 @@ void buy(int connfd, node** tree, int id_to_buy, int num){
         return;
     }
 
+    // if there's not enough left stocks
+    // 잔여 주식이 없다는 메세지를 client에게 보냄
     if ((cur_node->left_stock - num) < 0 ){
         //printf("Not enough left stocks!\n");
         sprintf(tmp, "Not enough left stocks!\n");
@@ -288,8 +297,9 @@ void buy(int connfd, node** tree, int id_to_buy, int num){
         return;
     }
 
+    // client가 매수한 양만큼 해당 종목의 주식 수를 줄인다.
     cur_node->left_stock = cur_node->left_stock - num;
-
+    // 매수 성공 메세지를 보냄
     sprintf(tmp, "[buy] success\n");
     strcat(buf, tmp);
     Rio_writen(connfd, buf, strlen(buf));
@@ -313,30 +323,12 @@ void sell(int connfd, node** tree, int id_to_sell, int num){
         return;
     }
 
+    // client가 매도한 양만큼 해당 종목의 주식 수를 늘린다.
     cur_node->left_stock = cur_node->left_stock + num;
-
+    // 매도 성공 메세지를 보냄
     sprintf(tmp, "[sell] success\n");
     strcat(buf, tmp);
     Rio_writen(connfd, buf, strlen(buf));
-}
-
-
-void parse_command(char* buf, char** argv){
-    char *delim;                // points to first space delimiter
-    int ind = 0;
-
-    buf[strlen(buf)-1] = ' ';   // replace triling '\n' with space
-    while (*buf && (*buf == ' ')) buf++;
-
-    // build the argv list
-    while ((delim = strchr(buf, ' '))){
-        argv[ind++] = buf;
-        *delim = '\0';
-        buf = delim + 1;
-        while(*buf && (*buf == ' ')) // ignore space
-            buf++;
-    }
-    argv[ind] = NULL;
 }
 
 
@@ -368,6 +360,7 @@ void show_nodes(int connfd, node *tree){
     Rio_writen(connfd, buf, strlen(buf));
 }
 
+// 프로그램 내의 주식 정보를 (비교적) 안전한 디스크에 백업
 void store_nodes(node *tree){
     FILE* fp = fopen("stock.txt", "w");
 
@@ -380,6 +373,7 @@ void store_nodes(node *tree){
     char tmp[MAXLINE];
     strcpy(buf, "");
 
+    // stack을 이용하여 이진 트리를 탐색
     stack* st = malloc(sizeof(stack));
     st->top = -1;
 
@@ -397,6 +391,7 @@ void store_nodes(node *tree){
     fclose(fp);
 }
 
+// functions for stack
 int is_empty(stack* st){
     if (st->top < 0) return 1;
     return 0;
