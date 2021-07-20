@@ -43,7 +43,7 @@ linux의 shell과 동일하게 동작하는 customized 된 myshell을 구현한�
     - 부모 프로세스에서 dup2() 함수를 호출(dup2(fd[1], STDOUT_FILENO)) 자신의 stdout을 fd[1]에 연결시킨다. 이 작업을 통해 부모 프로세스의 stdout은 터미널 디스플레이가 아닌 fd[1]으로 write하게 된다.
     - 부모 프로세스로부터 파이프 입력 end를 통해 자식 프로세스로 데이터가 전달되면, command를 수행(execvp())하고 그 결과를 stdout을 통해 출력한다.
   - Pipeline 개수에 따라 어떻게 handling 했는지에 대한 설명
-    - ![img1](./imgs/img1.png)
+    - ![img1](./imgs/img1.jpg)
     - pipe structure를 위 그림과 같이 떠올린다면, pipe command의 유형을 크게 3가지로 나눌 수 있다. (머리 - 몸통 - 꼬리)
       - 머리 pipe command는 fd[1]만 활용한다
       - 몸통 pipe command는 fd[0]과 fd[1]을 모두 활용한다.
