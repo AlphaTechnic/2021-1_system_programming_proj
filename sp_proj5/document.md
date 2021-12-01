@@ -95,7 +95,7 @@ typedef struct {
   - `rio_t clientrio[]` - 모든 active한 read buffer들을 담고 있다.
 - `init_pool()` : 처음에는 connected descriptor가 없으므로, `clientfd[i]`를 -1로 초기화한다. `FD_SET(listenfd, &p->read_set)`을 통해 client로부터의 connection request를 들을 준비를 한다.
 - 위 구조체에서 생성한 정보들을 `Select()` 함수의 인자로 넣어주게 되면, event를 기다리는 상태가 되는 것이다.
--  `add_client()` : pool 구조체에 connected descriptor를 담게 된다.
+- `add_client()` : pool 구조체에 connected descriptor를 담게 된다.
   ​
 - `response()`
   - client로부터의 query를 처리하는 핵심적인 함수이다. client로 부터 show, buy, sell, exit의 명령이 올 수 있는데, 이 메세지를 `Rio_readlineb(&rio, buf, MAXLINE)` 함수로 받아 적절한 response 메세지를 보내준다.
@@ -104,7 +104,7 @@ typedef struct {
   - `sell()`는 client가 sell 주문을 하였을 때, server에서 가지고 있는 주식 정보를 업데이트하고, 매도에 성공하였다는 메세지를 client에게 보내는 함수이다. `buy()`와는 다르게 잔여주식에 대한 고려를 하지 않아도 된다.
   - `exit()`는 client와의 connection을 끊도록 만들며, server쪽에서는 exit 요청을 잘 받았다는 메세지를 client에게 전해준다.
 
- 
+
 
 ### 2. task2 (thread-based)
 
@@ -139,13 +139,13 @@ typedef struct {
 
 ### 1.task1(event-based)
 
-![img](file:///C:/Users/juho3/AppData/Local/Packages/oice_16_974fa576_32c1d314_2a35/AC/Temp/msohtmlclip1/01/clip_image001.jpg)
+![img](./imgs_for_doc/clip_image001.jpg)
 
  
 
 ### 2. task2
 
-![img](file:///C:/Users/juho3/AppData/Local/Packages/oice_16_974fa576_32c1d314_2a35/AC/Temp/msohtmlclip1/01/clip_image003.jpg)
+![img](./imgs_for_doc/clip_image003.jpg)
 
  
 
@@ -162,7 +162,7 @@ typedef struct {
 - server쪽에서 전송하는 메세지 끝의 개행문자 혹은 NULL문자 만으로는 client가 '모든' 메세지가 전송되었다고 인지하도록 하는 것이 어려웠다.
 - 이 프로젝트에서 client의 show 명령으로 서버에서 보내 주는 메세지는 오롯이 숫자인 점을 이용하여, server에서 보내는 메세지의 끝에 character E를 붙여(end를 의미)보내었고, 이를 client가 메세지의 끝으로 인지하게끔 하였다.
 
- 
+
 
 ### 1. select
 
@@ -212,7 +212,7 @@ typedef struct {
 
   - `CNT == 0`일 때, 모든 connection이 제거된 것으로 판단한다.
 
- 
+
 
 
 
@@ -245,7 +245,7 @@ printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
 
 ## 1. 'Buy' or'Sell' only
 
-![img](file:///C:/Users/juho3/AppData/Local/Packages/oice_16_974fa576_32c1d314_2a35/AC/Temp/msohtmlclip1/01/clip_image005.png)
+![img](./imgs_for_doc/clip_image005.png)
 
  
 
@@ -253,7 +253,7 @@ printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
 
 ## 2. 'Show' only
 
-![img](file:///C:/Users/juho3/AppData/Local/Packages/oice_16_974fa576_32c1d314_2a35/AC/Temp/msohtmlclip1/01/clip_image007.png)
+![img](./imgs_for_doc/clip_image007.png)
 
  
 
@@ -261,7 +261,7 @@ printf("수행 시간 : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
 
 ## 3. Average('Buy','Sell', 'Show' mixed)
 
-![img](file:///C:/Users/juho3/AppData/Local/Packages/oice_16_974fa576_32c1d314_2a35/AC/Temp/msohtmlclip1/01/clip_image009.png)
+![img](./imgs_for_doc/clip_image009.png)
 
  
 
