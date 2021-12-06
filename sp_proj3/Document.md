@@ -1,6 +1,8 @@
 # 1. 프로그램 개요
 
-프로젝트 1, 2에서 구현한 셸에 linking과 loading 기능을 추가하는 프로그램이다. 프로젝트 2에서 구현한 assemble 명령을 통해서 생성된 object 파일을 link 시켜 메모리에 올리는 일을 수행한다. 이를 위해 4가지 기능을 구현하는데 첫째로 주소를 지정하는 명령인 `progaddr`과 linking loader 명령인 `loader`, 프로그램 실행 명령인 `run`, debug 명령인 `bp`이다.
+- 프로젝트 1, 2에서 구현한 셸에 linking과 loading 기능을 추가하는 프로그램이다. 
+- 프로젝트 2에서 구현한 assemble 명령을 통해서 생성된 object 파일을 link 시켜 메모리에 올리는 일을 수행한다. 
+- 이를 위해 4가지 기능을 구현하는데 첫째로 주소를 지정하는 명령인 `progaddr`과 linking loader 명령인 `loader`, 프로그램 실행 명령인 `run`, debug 명령인 `bp`이다.
 
 
 
@@ -26,206 +28,210 @@
 
 ### 3.1.1 *기능*
 
-> 사용자로부터 입력 받은 address로 program이 load 될 메모리 시작 주소 위치를 set한다.
+- 사용자로부터 입력 받은 address로 program이 load 될 메모리 시작 주소 위치를 set한다.
 
 ### 3.1.2 *사용변수*
 
-> int addr_int - 사용자가 입력한 hex str 주소를 int형으로 변환하여 저장한다.
+- `int addr_int` - 사용자가 입력한 hex str 주소를 int형으로 변환하여 저장한다.
 
 ## 3.2 모듈이름 : loader()
 
 ### 3.2.1 *기능*
 
-> pass1과 pass2 알고리즘을 call하여, ES table을 생성(pass1)하고, 이를 이용한 load 작업을 수행(pass2)한다. pass1, pass2 알고리즘을 수행한 뒤에는 register를 모두 0으로 초기화한다. L 레지스터의 값은 프로그램의 길이로 한다는 명세서의 요구사항을 따른다.
+- pass1과 pass2 알고리즘을 call하여, ES table을 생성(pass1)하고, 이를 이용한 load 작업을 수행(pass2)한다. 
+- pass1, pass2 알고리즘을 수행한 뒤에는 register를 모두 0으로 초기화한다. 
+- L 레지스터의 값은 프로그램의 길이로 한다는 명세서의 요구사항을 따른다.
 
 ### 3.2.2 *사용변수*
 
-> FILE *fp - 입력 받은 object file을 여는데 사용하는 파일 포인터 변수이다.
+- `FILE *fp` - 입력 받은 object file을 여는데 사용하는 파일 포인터 변수이다.
 
 ## 3.3 모듈이름 : load_pass1()
 
 ### 3.3.1 *기능*
 
-> object file을 하나하나 열면서, H레코드와 D레코드를 참조하여, ES table을 생성한다. H레코드에는 프로그램의 이름, 프로그램의 시작 주소와 그 길이가 적혀있다. H레코드를 만나면, 프로그램의 이름과 해당 location을 ES table에 push한다. 이 때, 이 전에 open한 object file의 다음 메모리 주소부터 올라갈 수 있도록, 이전 프로그램의 길이 만큼 더하여, CS_ADDR를 조정한다. 다음 D레코드를 만나게 되면, symbol들을 ES table에 push한다. CS_ADDR을 더하여 메모리에 실제 올라가게 될 address를 저장하여야 한다. 이렇게 CS name 혹은 symbol name과 해당 주소가 mapping된 ES table이 완성되게 되고, 이는 load_pass2() 알고리즘에서 활용된다.
+- object file을 하나하나 열면서, H레코드와 D레코드를 참조하여, ES table을 생성한다. 
+- H레코드에는 프로그램의 이름, 프로그램의 시작 주소와 그 길이가 적혀있다. 
+- H레코드를 만나면, 프로그램의 이름과 해당 location을 ES table에 push한다. 
+- 이 때, 이 전에 open한 object file의 다음 메모리 주소부터 올라갈 수 있도록, 이전 프로그램의 길이 만큼 더하여, CS_ADDR를 조정한다. 
+- 다음 D레코드를 만나게 되면, symbol들을 ES table에 push한다. 
+- CS_ADDR을 더하여 메모리에 실제 올라가게 될 address를 저장하여야 한다. 
+- 이렇게 CS name 혹은 symbol name과 해당 주소가 mapping된 ES table이 완성되게 되고, 이는 `load_pass2()` 알고리즘에서 활용된다.
 
 ### 3.3.2 *사용변수*
 
-> char *ptr - object file로부터 line을 입력받게 되면, 이를 앞에서부터 탐색하면서, name 혹은 object code에 접근해야 한다. 문자열 line의 각 character를 탐색하는 char 포인터 변수이다.
->
-> char line[LINE_LEN] - object file로부터 읽어들인 하나의 line을 저장하는 문자열 자료구조이다.
->
-> char CS_name[SYMBOL_LEN], char CS_start_addr_hexstr[STR_ADDR_LEN], char CS_len_hexstr[STR_ADDR_LEN], int CS_start_addr_int;int CS_len_hexstr_int - H레코드를 만나게 되었을 때, line을 탐색하면서, control section의 이름, 시작주소, 길이를 1차적으로 char 문자열로 얻어오고, 이 정보를 int 형으로 바꿔서 저장한다. 이를 위한 변수들이다.
->
-> char SYM_name[SYMBOL_LEN], char sym_addr_hexstr[STR_ADDR_LEN], int sym_addr_int - D레코드를 만나게 되었을 때, line을 탐색하면서, symbol의 이름, 저장될 메모리 주소(cs 시작 address에 상대적인)를 1차적으로 char 문자열로 얻어오고, 이 정보를 int 형으로 바꿔서 저장한다. 이를 위한 변수들이다.
+- `char *ptr` - object file로부터 line을 입력받게 되면, 이를 앞에서부터 탐색하면서, name 혹은 object code에 접근해야 한다. 문자열 line의 각 character를 탐색하는 char 포인터 변수이다.
+- `char line[LINE_LEN]` - object file로부터 읽어들인 하나의 line을 저장하는 문자열 자료구조이다.
+- `char CS_name[SYMBOL_LEN]`, `char CS_start_addr_hexstr[STR_ADDR_LEN]`, `char CS_len_hexstr[STR_ADDR_LEN]`, `int CS_start_addr_int;` `int CS_len_hexstr_int` 
+  - H레코드를 만나게 되었을 때, line을 탐색하면서, control section의 이름, 시작주소, 길이를 1차적으로 char 문자열로 얻어오고, 이 정보를 int 형으로 바꿔서 저장한다. 
+  - 이를 위한 변수들이다.
+- `char SYM_name[SYMBOL_LEN]`, `char sym_addr_hexstr[STR_ADDR_LEN]`, `int sym_addr_int`
+  - D레코드를 만나게 되었을 때, line을 탐색하면서, symbol의 이름, 저장될 메모리 주소(cs 시작 address에 상대적인)를 1차적으로 char 문자열로 얻어오고, 이 정보를 int 형으로 바꿔서 저장한다. 
+  - 이를 위한 변수들이다.
 
 ## 3.4 모듈이름 : load_pass2()
 
 ### 3.4.1 *기능*
 
-> pass1에서 완성한 ES table과 R, T, M 레코드를 참조하여 memory에 object 코드들을 적재한다.
->
-> - H 레코드를 만났을 때
->
->   control section의 이름을 RFTAB[1]에 저장한다.
->
-> - R 레코드를 만났을 때
->
->   R레코드에 reference number와 symbol name이 있다. RFTAB[reference number]에 symbol의 address를 저장해야 하는데, 이는 pass1 알고리즘에서 생성한 ES table을 탐색하여 찾는다.
->
-> - T 레코드를 만났을 때
->
->   object code들을 메모리에 적재한다. T 레코드에 object code가 올라갈 MEM의 시작 주소(cs address에 상대적인)가 적혀있고, T 레코드의 1byte 씩 접근하여 메모리에 적재한다.
->
-> - M 레코드를 만났을 때
->
->   M레코드에 modify를 적용하는 주소와 길이가 적혀있다. 해당 메모리 주소에 이미 machine code가 적재되어 있는데, 이를 다시 가져와서 M레코드가 지령하는 만큼의 조정을 가한 후, 다시 수정된 value를 메모리에 저장한다. 예를 들어, +02라고 되어있다면, RFTAB[2]에서 value를 얻어온 뒤 그 값만큼의 조정을 하는 것이다.  
+- pass1에서 완성한 ES table과 R, T, M 레코드를 참조하여 memory에 object 코드들을 적재한다.
+- H 레코드를 만났을 때
+  - control section의 이름을 `RFTAB[1]`에 저장한다.
+- R 레코드를 만났을 때
+  - R레코드에 reference number와 symbol name이 있다. `RFTAB[reference number]`에 symbol의 address를 저장해야 하는데, 이는 pass1 알고리즘에서 생성한 ES table을 탐색하여 찾는다.
+- T 레코드를 만났을 때
+  - object code들을 메모리에 적재한다. T 레코드에 object code가 올라갈 MEM의 시작 주소(cs address에 상대적인)가 적혀있고, T 레코드의 1byte 씩 접근하여 메모리에 적재한다.
+- M 레코드를 만났을 때
+  - M레코드에 modify를 적용하는 주소와 길이가 적혀있다. 
+  - 해당 메모리 주소에 이미 machine code가 적재되어 있는데, 이를 다시 가져와서 M레코드가 지령하는 만큼의 조정을 가한 후, 다시 수정된 value를 메모리에 저장한다. 
+  - 예를 들어, `+02`라고 되어있다면, `RFTAB[2]`에서 value를 얻어온 뒤 그 값만큼의 조정을 하는 것이다.  
 
 ### 3.4.2 *사용변수*
 
-> char *ptr - object file로부터 line을 입력받게 되면, 이를 앞에서부터 탐색하면서, name 혹은 object code에 접근해야 한다. 문자열 line의 각 character를 탐색하는 char 포인터 변수이다.
->
-> char line[LINE_LEN] - object file로부터 읽어들인 하나의 line을 저장하는 문자열 자료구조이다.
->
-> int RFTAB[MAX_RF_NUM] - reference number가 index 역할을 하고, symbol의 address가 value로서 저장되어있는 int 배열이다. 결국 reference number와 address value를 mapping하고 있는 table로서 기능한다.
->
-> char rf_ind_hexstr[NAME_LEN], int rf_ind - object file에서 읽어들인 reference number를 1차적으로 문자열에 저장했다가, 다시 이를 int형으로 바꿔 저장한다.
->
-> char ES_name[NAME_LEN] - R 레코드에서 읽어들인 ES_name을 저장하는 문자열
->
-> char one_line_T_record_len_hexstr[STR_ADDR_LEN], int one_line_T_record_len_int - T 레코드 한 line의 길이를 문자열로 읽어와서 이를 int값으로 바꿔 저장한다.
->
-> char starting_addr_hexstr[STR_ADDR_LEN] - object code가 올라갈 메모리의 시작주도를 저장하는 문자열 변수이다.
->
-> char byte_hexstr[STR_ADDR_LEN], int byte_int - T레코드에 적인 object code들에 대하여 1byte씩 접근하여 이를 메모리에 적재한다. 그 1 byte 값을 우선 문자열 형태로 저장한 뒤 이름 int 형으로 바꾸어 저장한다.
->
-> int LOC_to_push - 1 byte를 적재할 메모리의 주소를 관리하는 변수이다.
->
-> char LOC_to_be_modified_hexstr[STR_ADDR_LEN], int LOC_to_be_modified_int - modify를 해야하는 location의 주소 값을 나타내는 변수. 먼저 문자열로 해당 정보를 받았다가 이를 int 형 자료로 바꿔 저장한다.
->
-> char halfbytes_len_to_be_modified_hexstr[STR_ADDR_LEN], int halfbytes_len_to_be_modified_int - 수정될 half byte의 길이를 나타내는 변수이다. halfbytes_len_to_be_modified_int d의 값은 5 또는 6이다.
->
-> char half_bytes_to_be_modified_str[STR_ADDR_LEN] - 메모리가 가지고 있는 값 중에서 수정되어야할 값을 메모리에서 가져와서 문자열 형태로 저장한다.
->
-> char LOC_to_be_modified_hexstr[STR_ADDR_LEN], int LOC_to_be_modified_int - M레코드는 수정해야할 메모리 주소를 알려주게 되는데 이를 1차적으로 문자열에 저장하였다가, 후에 int형 자료로 변환하여 저장한다.
->
-> int dx - modify를 적용하는 증분(음수일 수 있음)이다. 다름 아닌 RFTAB[rf_ind_int]인데, 변화량이라는 어감이 느껴지도록 readability를 위해 dx라는 변수명을 사용하였다. target object code에 dx만큼의 조정을 가하게 된다.
+- `char *ptr` 
+  - object file로부터 line을 입력받게 되면, 이를 앞에서부터 탐색하면서, name 혹은 object code에 접근해야 한다. 
+  - 문자열 line의 각 character를 탐색하는 char 포인터 변수이다.
+- `char line[LINE_LEN]` 
+  - object file로부터 읽어들인 하나의 line을 저장하는 문자열 자료구조이다.
+- `int RFTAB[MAX_RF_NUM]`
+  - reference number가 index 역할을 하고, symbol의 address가 value로서 저장되어있는 int 배열이다. 
+  - 결국 reference number와 address value를 mapping하고 있는 table로서 기능한다.
+- `char rf_ind_hexstr[NAME_LEN]`, `int rf_ind`
+  - object file에서 읽어들인 reference number를 1차적으로 문자열에 저장했다가, 다시 이를 int형으로 바꿔 저장한다.
+- `char ES_name[NAME_LEN]`
+  - R 레코드에서 읽어들인 ES_name을 저장하는 문자열
+- `char one_line_T_record_len_hexstr[STR_ADDR_LEN]`, `int one_line_T_record_len_int` 
+  - T 레코드 한 line의 길이를 문자열로 읽어와서 이를 int값으로 바꿔 저장한다.
+- `char starting_addr_hexstr[STR_ADDR_LEN]`
+  - object code가 올라갈 메모리의 시작주도를 저장하는 문자열 변수이다.
+- `char byte_hexstr[STR_ADDR_LEN]`, `int byte_int`
+  - T레코드에 적인 object code들에 대하여 1byte씩 접근하여 이를 메모리에 적재한다. 
+  - 그 1 byte 값을 우선 문자열 형태로 저장한 뒤 이름 int 형으로 바꾸어 저장한다.
+- `int LOC_to_push` - 1 byte를 적재할 메모리의 주소를 관리하는 변수이다.
+- `char LOC_to_be_modified_hexstr[STR_ADDR_LEN]`, `int LOC_to_be_modified_int`
+  - modify를 해야하는 location의 주소 값을 나타내는 변수. 먼저 문자열로 해당 정보를 받았다가 이를 int 형 자료로 바꿔 저장한다.
+- `char halfbytes_len_to_be_modified_hexstr[STR_ADDR_LEN]`, `int halfbytes_len_to_be_modified_int`
+  - 수정될 half byte의 길이를 나타내는 변수이다. halfbytes_len_to_be_modified_int d의 값은 5 또는 6이다.
+- `char half_bytes_to_be_modified_str[STR_ADDR_LEN]`
+  - 메모리가 가지고 있는 값 중에서 수정되어야할 값을 메모리에서 가져와서 문자열 형태로 저장한다.
+- `char LOC_to_be_modified_hexstr[STR_ADDR_LEN]`, `int LOC_to_be_modified_int`
+  - M레코드는 수정해야할 메모리 주소를 알려주게 되는데 이를 1차적으로 문자열에 저장하였다가, 후에 int형 자료로 변환하여 저장한다.
+- `int dx` 
+  - modify를 적용하는 증분(음수일 수 있음)이다. 
+  - 다름 아닌 `RFTAB[rf_ind_int]`인데, 변화량이라는 어감이 느껴지도록 readability를 위해 dx라는 변수명을 사용하였다. 
+  - target object code에 dx만큼의 조정을 가하게 된다.
 
 ## 3.5 모듈이름 : push_to_ESTAB()
 
 ### 3.5.1 *기능*
 
-> ES table에 es node를 push하는 작업을 수행한다. ES table은 hash size 20인 hash map으로 구현되어있으며, name과 address의 묶음을 하나의 정보단위로 가지고 있다. 2주차 project의 symbol table과 같은 형태로 구현되어있기 때문에, push 로직도 동일하다. hash function을 이용하여 index를 얻은뒤 이 index에 저장되어있는 linked list에 해당 es node를 삽입하면 된다.
+- ES table에 es node를 push하는 작업을 수행한다. 
+- ES table은 hash size 20인 hash map으로 구현되어있으며, name과 address의 묶음을 하나의 정보단위로 가지고 있다. 
+- 2주차 project의 symbol table과 같은 형태로 구현되어있기 때문에, push 로직도 동일하다. 
+- hash function을 이용하여 index를 얻은뒤 이 index에 저장되어있는 linked list에 해당 es node를 삽입하면 된다.
 
 ### 3.5.2 *사용변수*
 
-> int ind - hash function을 이용하여 es node가 저장될 index를 구한다. 이를 저장하는 int형 변수이다.
+- `int ind`
+  - hash function을 이용하여 es node가 저장될 index를 구한다. 
+  - 이를 저장하는 int형 변수이다.
 
 ## 3.6 모듈이름 : find_ESNODE_or_NULL()
 
 ### 3.6.1 *기능*
 
-> es name을 입력받아 ES table을 탐색하여 이에 해당하는 node를 돌려준다. 해당 es name이 없다면, NULL 값을 return한다.
+- es name을 입력받아 ES table을 탐색하여 이에 해당하는 node를 돌려준다. 
+- 해당 es name이 없다면, NULL 값을 return한다.
 
 ### 3.6.2 *사용변수*
 
-> int ind - hash function을 이용하여 es node가 저장된 index를 구한다. 이를 저장하는 int형 변수이다.
+- `int ind`
+  - hash function을 이용하여 es node가 저장된 index를 구한다. 
+  - 이를 저장하는 int형 변수이다.
 
 ## 3.7 모듈이름 : free_ESTAB()
 
 ### 3.7.1 *기능*
 
-> ESTAB에 할당된 메모리를 해제하는 함수이다.
+- ESTAB에 할당된 메모리를 해제하는 함수이다.
 
 ### 3.7.2 *사용변수*
 
-> ES_NODE *cur_node, *pre_node - cur_node는 link를 타고 할당을 해제할 노드를 방문하기 위한 사용자정의 데이터타입 포인터 변수이고, pre_node에 assign된 메모리를 해제한다. 
+- `ES_NODE *cur_node`, `*pre_node`
+  - `cur_node`는 link를 타고 할당을 해제할 노드를 방문하기 위한 사용자정의 데이터타입 포인터 변수이고, `pre_node`에 assign된 메모리를 해제한다. 
 
 ## 3.8 모듈이름 : bp_command()
 
-### 3.8.1 *기능*
+### 3.8.1 *기능*****
 
-> 목적 : bp 관련한 사용자의 명령에 따라 관련 작업을 수행하고, 그 내용은 아래와 같다.
->   1. bp : bp가 걸린 메모리 주소를 보여준다.
->   2. bp clear : set 되어 있는 bp값들을 모두 해제한다.
->     3. bp [address] : 해당 address에 bp를 설정한다.
->
-> break point는 MEMORY[] 배열과 동일한 크기의 배열(전역변수 BP_CHK[])을 생성하고, BP_CHK[해당address] = true 로 표시함으로써 break point를 표시한다. 보다 자세한 설명은 아래 전역변수 BP_CHK와 BP_ADDR를 설명하는 란에서 한다.
+- **목적** : bp 관련한 사용자의 명령에 따라 관련 작업을 수행하고, 그 내용은 아래와 같다.
+  - bp : bp가 걸린 메모리 주소를 보여준다.
+  - bp clear : set 되어 있는 bp값들을 모두 해제한다.
+  - bp [address] : 해당 address에 bp를 설정한다.
+- `break point는 MEMORY[]` 배열과 동일한 크기의 배열(전역변수 `BP_CHK[]`)을 생성하고, `BP_CHK[해당address]` = `true` 로 표시함으로써 break point를 표시한다. 
+- 보다 자세한 설명은 아래 전역변수 `BP_CHK`와 `BP_ADDR`를 설명하는 란에서 한다.
 
 ### 3.8.2 *사용변수*
 
-> 없음
+- 없음
 
 ## 3.9 모듈이름 : run()
 
 ### 3.9.1 *기능*
 
-> machine instruction을 수행시키며, break이 걸린 point들을 잡아내어 그 때마다 register의 내용을 print한다.
+- machine instruction을 수행시키며, break이 걸린 point들을 잡아내어 그 때마다 register의 내용을 print한다.
 
 ### 3.9.2 *사용변수*
 
-> END - PROGRAM_ADDR에 CS_LEN을 더한 값을 저장하며, 프로그램을 위해 할당된 메모리공간 주소의 마지막을 지정한다.
+- `END - PROGRAM_ADDR`에 `CS_LEN`을 더한 값을 저장하며, 프로그램을 위해 할당된 메모리공간 주소의 마지막을 지정한다.
 
 ## 3.10 모듈이름 : execute_instruction()
 
 ### 3.10.1 *기능*
 
-> 메모리에 적재된 object code들을 메모리에서 읽어들여 machine instruction을 수행시킨다. 구체적인 logic은 다음과 같다.
->
-> 1. 메모리에서 1byte를 읽어온다
-> 2. & 0b00000011을 수행하여 8bit 중 뒤의 2bit에 자리한 n, i 값을 얻는다.
-> 3. 메모리에서 읽어온 값에서 ni값을 빼면 opcode가 무엇인지 알게된다.
-> 4. opcode를 이용하여, op node를 얻는다.
-> 5. op node에 기록된 format을 살필 수 있게 되고, 이로써 메모리에서 몇 byte를 가져와야하는지 알 수 있게 된다.
-> 6. format에 맞도록 메모리에서 데이터를 가져와서 operand를 설정한다.
->    1. format이 3이고 operand가 2의 보수표현 음수인 경우, hex str으로 표현된 메모리의 값을 그대로 decimal int로 변환하게 되면 기본적으로 양수로 변환되므로 이를 보정해야한다.
->    2. format이 3 또는 4라면, b, p, x의 값을 추가적으로 확인하여, disp를 한번 더 조정한다.
-> 7. operation을 크게 LD 관련 명령어, ST 관련 명령어, J 관련 명령어가 있다고 분류하고, 각각 해당하는 subroutine을 불러 해당 operation을 수행한다.
->
-> project 3에서 I/O 관련 3가지 명령을 다음과 같이 처리한다.
->
-> - RD 명령 : RD는 항상 input device로부터 아무것도 받지 못한다는 가정을하고, NULL 값(ascii == 0)을 가져오는 방식으로 동작하도록 설정한다
-> - TD 명령 : CC(Condition Code)를 '<'로 set하고, 바로 다음 instuction으로 넘어간다고 가정한다. 
-> - WD 명령 : 바로 다음 instruction으로 넘어간다고 가정한다.
+- 메모리에 적재된 object code들을 메모리에서 읽어들여 machine instruction을 수행시킨다. 구체적인 logic은 다음과 같다.
+  - 메모리에서 1byte를 읽어온다
+  - & 0b00000011을 수행하여 8bit 중 뒤의 2bit에 자리한 n, i 값을 얻는다.
+  - 메모리에서 읽어온 값에서 ni값을 빼면 opcode가 무엇인지 알게된다.
+  - opcode를 이용하여, op node를 얻는다.
+  - op node에 기록된 format을 살필 수 있게 되고, 이로써 메모리에서 몇 byte를 가져와야하는지 알 수 있게 된다.
+  - format에 맞도록 메모리에서 데이터를 가져와서 operand를 설정한다.
+    1. format이 3이고 operand가 2의 보수표현 음수인 경우, hex str으로 표현된 메모리의 값을 그대로 decimal int로 변환하게 되면 기본적으로 양수로 변환되므로 이를 보정해야한다.
+    2. format이 3 또는 4라면, b, p, x의 값을 추가적으로 확인하여, disp를 한번 더 조정한다.
+  - operation을 크게 LD 관련 명령어, ST 관련 명령어, J 관련 명령어가 있다고 분류하고, 각각 해당하는 subroutine을 불러 해당 operation을 수행한다.
+- project 3에서 I/O 관련 3가지 명령을 다음과 같이 처리한다.
+  - RD 명령 : RD는 항상 input device로부터 아무것도 받지 못한다는 가정을하고, NULL 값(ascii == 0)을 가져오는 방식으로 동작하도록 설정한다
+  - TD 명령 : CC(Condition Code)를 '<'로 set하고, 바로 다음 instuction으로 넘어간다고 가정한다. 
+  - WD 명령 : 바로 다음 instruction으로 넘어간다고 가정한다.
+
+
 
 ### 3.10.2 *사용변수*
 
-> int opcode - opcode의 값을 담는 변수이다.
->
-> int format - op 명령의 format을 저장하는 변수이다.
->
-> int reg1, reg2 - 레지스터 번호를 저장하는 변수이다.
->
-> int disp - 3형식 insturcion의 하위 1.5 byte에 적힌 disp이다. int형으로 저장한다.
->
-> int ni, x, b, p, e - 각각 n, i, x, b, p, e bit를 나타낸다. 해당 변수들의 정보를 바탕으로 addressing 방법을 결정하게 된다.
->
-> int TA - disp에서 relative를 반영한 실질적 Target Address를 구해 저장한다.
->
-> int start_loc - 프로그램 수행의 첫 location 주솟값을 저장한다.
->
-> int operand - machine insctruction의 operand에 해당하는 메모리 값을 저장하는 변수이다.
+- `int opcode` - opcode의 값을 담는 변수이다.
+- `int format` - op 명령의 format을 저장하는 변수이다.
+- `int reg1`, `reg2` - 레지스터 번호를 저장하는 변수이다.
+- `int disp` - 3형식 insturcion의 하위 1.5 byte에 적힌 disp이다. int형으로 저장한다.
+- `int ni, x, b, p, e` - 각각 n, i, x, b, p, e bit를 나타낸다. 해당 변수들의 정보를 바탕으로 addressing 방법을 결정하게 된다.
+- `int TA` - disp에서 relative를 반영한 실질적 Target Address를 구해 저장한다.
+- `int start_loc` - 프로그램 수행의 첫 location 주솟값을 저장한다.
+- `int operand` - machine insctruction의 operand에 해당하는 메모리 값을 저장하는 변수이다.
 
 ## 3.11 모듈이름 : LD_related_instruction()
 
 ### 3.11.1 *기능*
 
-> operand로 (m..m+2)가 오는 즉, operand로 'MEM가 가지고 있는 value'가 오는 경우의 instruction을 처리한다. n과 i의 값을 읽어서 ni == 00 인 경우는 COPY 프로그램에 존재하지 않는다는 가정을 하고, ni == 01인 경우 ni == 10인 경우 ni == 11인 경우로 나누어 해당되는 방식으로 addressing을 수행하여 Val 값을 정한다.
->
-> - ni == 01인 경우(immediate addressing)
->
->   Val은 인자로 들어온 TA 자체가 된다.
->
-> - ni == 10인 경우(indirect addressing)
->
->   TA를 MEMORY[TA]로 갱신하고, 해당 메모리 주소로 접근하여 메모리가 가지고 있는 값을 Val 값으로 정한다.
->
-> - ni == 11인 경우(simple addressing)
->
->   TA 메모리 주소로 접근하여 메모리가 가지고 있는 값을 Val 값으로 정한다.
+- operand로 (m..m+2)가 오는 즉, operand로 'MEM가 가지고 있는 value'가 오는 경우의 instruction을 처리한다. 
+- `n`과 `i`의 값을 읽어서 `ni` == 00 인 경우는 COPY 프로그램에 존재하지 않는다는 가정을 하고, `ni` == 01인 경우 `ni` == 10인 경우 `ni` == 11인 경우로 나누어 해당되는 방식으로 addressing을 수행하여 Val 값을 정한다.
+  - ni == 01인 경우(immediate addressing)
+    - Val은 인자로 들어온 TA 자체가 된다.
+  - ni == 10인 경우(indirect addressing)
+    - TA를 MEMORY[TA]로 갱신하고, 해당 메모리 주소로 접근하여 메모리가 가지고 있는 값을 Val 값으로 정한다.
+  - ni == 11인 경우(simple addressing)
+    - TA 메모리 주소로 접근하여 메모리가 가지고 있는 값을 Val 값으로 정한다.
 
 ### 3.11.2 *사용변수*
 
-> int Val - 해당 address로 접근하여 MEMORY[TA]의 값을 가져오게 되는데 이를 저장하는 변수이다. 
+`int Val` - 해당 address로 접근하여 MEMORY[TA]의 값을 가져오게 되는데 이를 저장하는 변수이다. 
 
 
 
@@ -233,19 +239,17 @@
 
 ### 3.12.1 *기능*
 
-> operand로 m 가 오는 즉, operand로 MEM의 주소가 오는 경우의 mnemonic을 처리한다. LD 관련 명령과 마찬가지로 n과 i의 값을 읽는다. ni == 00과 ni==01인 경우는 COPY 프로그램에 존재하지 않는다는 가정을 하고, ni == 10인 경우와 ni == 11인 경우로 나누어 해당되는 방식으로 addressing을 수행하여 Addr 값을 정한다.
->
-> - ni == 10인 경우(indirect addressing)
->
->   MEMORY[TA]의 값을 Addr에 저장한다.
->
-> - ni == 11인 경우(simple addressing)
->
->   Addr이 TA가 된다.
+- operand로 m 가 오는 즉, operand로 MEM의 주소가 오는 경우의 mnemonic을 처리한다. 
+- LD 관련 명령과 마찬가지로 `n`과 `i`의 값을 읽는다. 
+- `ni` == 00과 `ni`==01인 경우는 COPY 프로그램에 존재하지 않는다는 가정을 하고, `ni` == 10인 경우와 `ni` == 11인 경우로 나누어 해당되는 방식으로 addressing을 수행하여 Addr 값을 정한다.
+- `ni` == 10인 경우(indirect addressing)
+  - `MEMORY[TA]`의 값을 Addr에 저장한다.
+- `ni` == 11인 경우(simple addressing)
+  - Addr이 TA가 된다.
 
 ### 3.12.2 *사용변수*
 
-> int Addr - TA를 저장하는 변수이다. ni == 10인 경우 TA를 MEMORY[TA]로 조정한다.
+- `int Addr` - `TA`를 저장하는 변수이다. `ni` == 10인 경우 `TA`를 `MEMORY[TA]`로 조정한다.
 
 
 
@@ -253,81 +257,94 @@
 
 ### 3.13.1 *기능*
 
-> operand로 m..m+2가 오며, 해당 메모리 주소에 val_to_push를 적재한다. 적재하려는 데이터가 몇 byte인지를 인자로 받아 해당하는 만큼 메모리에 적재한다. 이를테면, STCH는 1byte만을 적재하는 명령어이고, STA는 3byte를 STF는 6byte를 적재하는 명령이다.
+- operand로 m..m+2가 오며, 해당 메모리 주소에 val_to_push를 적재한다. 
+- 적재하려는 데이터가 몇 byte인지를 인자로 받아 해당하는 만큼 메모리에 적재한다. 
+- 이를테면, `STCH`는 1byte만을 적재하는 명령어이고, `STA`는 3byte를 `STF`는 6byte를 적재하는 명령이다.
 
 ### 3.13.2 *사용변수*
 
-> 없음
+- 없음
 
 ## 3.14 모듈이름 : twos_complement_str_to_decint()
 
 ### 3.14.1 *기능*
 
-> modify해야할 대상이 되는 byte code가 2의 보수표현 음수인 경우가 있는데, 이를 그대로 int로 변환하게 되면 양수 값이되어 보정하는 작업이 필요하다. 문자열 hexstr을 signed 32bit hexstr로 간주하고, 조응하는 dec int값으로 변환한다. hex str 값이 2의 보수표현 음수라면, 해당 값에 " | 0xFF000000" 연산을하여, 앞에 FF를 붙여 음수 sign bit가 반영된 32bit의 수로 변환한다. 
+- modify해야할 대상이 되는 byte code가 2의 보수표현 음수인 경우가 있는데, 이를 그대로 int로 변환하게 되면 양수 값이되어 보정하는 작업이 필요하다. 
+- 문자열 hexstr을 signed 32bit hexstr로 간주하고, 조응하는 dec int값으로 변환한다. 
+- hex str 값이 2의 보수표현 음수라면, 해당 값에 `| 0xFF000000` 연산을하여, 앞에 `FF`를 붙여 음수 sign bit가 반영된 32bit의 수로 변환한다. 
 
 ### 3.14.2 *사용변수*
 
-> int res - return할 결과를 저장하는 변수이다.
+- `int res` - return할 결과를 저장하는 변수이다.
 
 ## 3.15 모듈이름 : get_opcode_or_NULL_by_opcode()
 
 ### 3.15.1 *기능*
 
-> project 2에서 구현하였던 get_opcode() 함수는 인자로 menmonic을 주었을 때, 해당하는 op node를 얻을 수 있는 함수였다. 하지만, project 3 run을 수행할 때는 opcode를 이용하여 op node를 찾아야한다. 해당 함수는 opcode를 입력 받아 해당 opcode에 맞는 OP_node를 return 하는 작업을 수행한다.
+- project 2에서 구현하였던 get_opcode() 함수는 인자로 menmonic을 주었을 때, 해당하는 op node를 얻을 수 있는 함수였다. 
+- 하지만, project 3 run을 수행할 때는 opcode를 이용하여 op node를 찾아야한다. 
+- 해당 함수는 opcode를 입력 받아 해당 opcode에 맞는 OP_node를 return 하는 작업을 수행한다.
 
 ### 3.15.2 *사용변수*
 
-> int ind - hash function으로 특정 opcode가 저장된 index에 접근한다. 이 index를 저장하는 변수이다.
+- `int ind` - hash function으로 특정 opcode가 저장된 index에 접근한다. 
+- 이 index를 저장하는 변수이다.
 
 # 4. 전역 변수 정의
 
 ## 4.1 int ES_NODE *ESTAB[ESTAB_HASH_SIZE]
 
-> ES NODE는 char name[SYMBOL_LEN], int addr, struct ES_NODE* nxt 데이터를 가지고 있는 사용자 정의 데이터 타입 구조체이다. 이를 가리키는 포인터변수로 이루어진 hash table을 정의하였다. ESTAB_HASH_SIZE는 20이다.
+- ES NODE는 `char name[SYMBOL_LEN]`, `int addr, struct ES_NODE* nxt` 데이터를 가지고 있는 사용자 정의 데이터 타입 구조체이다. 
+- 이를 가리키는 포인터변수로 이루어진 hash table을 정의하였다. `ESTAB_HASH_SIZE`는 20이다.
 
 ## 4.2 int BP_CHK[MEM_SIZE]
 
-> break point가 걸려있는 address를 저장하기 위한 방법으로 위의 자료구조를 정의하였다. BP_CHK는 메모리의 개수와 동일한 크기를 가지고 있는 배열로 break point가 걸려있는 지점을 true로 바꿈으로써 위치를 표시한다.
+- break point가 걸려있는 address를 저장하기 위한 방법으로 위의 자료구조를 정의하였다. 
+- `BP_CHK`는 메모리의 개수와 동일한 크기를 가지고 있는 배열로 break point가 걸려있는 지점을 `true`로 바꿈으로써 위치를 표시한다.
 
 ## 4.3 int BP_ADDR[MEM_SIZE]
 
-> 4.2와 같이 자료구조를 정의하게 되면 bp 지점들을 조회할 때마다, 메모리 전체를 탐색하게 된다. 효율성을 위해서 BP_CHK[address] 값이 true인 address를 저장하는 1차원 배열을 정의하였다. 만약, bp가 걸린 지점들을 조회하는 명령을 수행할 때, BP_CHK[BP_ADDR[i]]의 값을 가져오면 된다.
+- 4.2와 같이 자료구조를 정의하게 되면 bp 지점들을 조회할 때마다, 메모리 전체를 탐색하게 된다. 
+- 효율성을 위해서 `BP_CHK[address]` 값이 `true`인 address를 저장하는 1차원 배열을 정의하였다. 
+- 만약, bp가 걸린 지점들을 조회하는 명령을 수행할 때, `BP_CHK[BP_ADDR[i]`의 값을 가져오면 된다.
 
 ## 4.4 int PRINT_FLAG
 
-> 메모리에 적재된 instruction들을 수행할 때, bp를 만나게되면, run() 수행을 멈추면서, 그 지점의 register 값들을 화면에 출력하여 보여주게 된다. 이 다음 다시 run()을 수행할 때는 해당 지점에서 register 값들을 화면에 보여줄 필요가 없으므로, 이를 조정하는 flag를 전역변수로 정의하였다.
+- 메모리에 적재된 instruction들을 수행할 때, bp를 만나게되면, `run()` 수행을 멈추면서, 그 지점의 register 값들을 화면에 출력하여 보여주게 된다. 
+- 이 다음 다시 `run()`을 수행할 때는 해당 지점에서 register 값들을 화면에 보여줄 필요가 없으므로, 이를 조정하는 flag를 전역변수로 정의하였다.
 
 ## 4.5 int NUM_OF_BP
 
-> bp의 개수를 저장하는 전역변수이다.
+- bp의 개수를 저장하는 전역변수이다.
 
 ## 4.6 int REG[REG_NUM + 1]
 
-> register의 값을 가지고 있는 1차원 배열 자료구조이다. 0번 레지스터(A)에 17이 저장되어있다면, REG[0] == 17로 저장하는 방식이다. 
+- register의 값을 가지고 있는 1차원 배열 자료구조이다. 
+- 0번 레지스터(A)에 17이 저장되어있다면, `REG[0]` == 17로 저장하는 방식이다. 
 
-## 4.7 char CC;
+## 4.7 char CC
 
-> Condition Code를 저장하는 전역변수이다. '<', '>', '=' 3가지 값 중 하나의 값을 가지게 된다.
+- Condition Code를 저장하는 전역변수이다. `<`, `>`, `=` 3가지 값 중 하나의 값을 가지게 된다.
 
 ## 4.8 int PROGRAM_ADDR
 
-> 프로그램의 시작 주소를 저장하는 전역 변수이다.
+- 프로그램의 시작 주소를 저장하는 전역 변수이다.
 
 ## 4.9 int CS_ADDR
 
-> Control Section의 시작 주소를 저장하는 전역 변수이다.
+- Control Section의 시작 주소를 저장하는 전역 변수이다.
 
 ## 4.10 int CS_LEN
 
-> Control Section의 길이를 저장하는 전역 변수이다.
+- Control Section의 길이를 저장하는 전역 변수이다.
 
 ## 4.11 int PROGRAM_LEN
 
-> 프로그램의 길이를 저장하는 전역 변수이다.
+- 프로그램의 길이를 저장하는 전역 변수이다.
 
 ## 4.12 int FIRST_INSTRUCTION_ADDR
 
-> 프로그램에서 첫번째 instruction이 수행되는 주소를 저장하는 변수이다.
+- 프로그램에서 첫번째 instruction이 수행되는 주소를 저장하는 변수이다.
 
 # 5. 코드
 
