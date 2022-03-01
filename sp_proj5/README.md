@@ -1,3 +1,10 @@
+    HOW TO EXECUTE
+    1. Enter the 'make' command to compile.
+       Then, the 'myshell.out' executable file is created.
+    2. Enter the './myshell.out' command to run the 'myshell.out' file.
+    3. If you want to delete the object file and the executable file,
+       run the 'make clean' command.
+
 # 1. 개발 목표
 
 주식 서버 프로그램을 구현한다. 단일 프로세스 혹은 thread 기반 stockserver는 여러 client와 connection이 불가능하다. 해당 프로젝트에서는 concurrent network programming을 이용하여 주식 서버를 구축한다. concurrent programming을 구현하기 위해서는 2가지 방식이 있는데, `select()`를 이용한 Event-based Approach가 있고, pthread를 이용한 Thread-based Approach가 있다. 각각의 방식으로 주식 서버를 구축해보고, 각 프로그램의 수행 결과를 비교, 대조하면서 성능을 분석해본다. 
@@ -39,15 +46,15 @@ select는 C언어의 `scanf()`와 같은 blocking 함수로써 파일들을 감�
 
   ```c
    typedef struct { 
-
+  
       ...     
-
+  
       int clientfd[FD_SETSIZE];  
-
+  
       ...
-
+  
   }pool;
-
+  
   ```
 
   `FD_SETSIZE` 만큼 순회하면서, 모든 connection이 닫혔는지(값 == -1)를 점검한다. 모든 connection이 닫혀있다면, 이를 주식 관리 테이블 메모리에 적재한다.
@@ -176,7 +183,7 @@ typedef struct {
 
     ```c
     int connection_flag = 0;
-
+    
     for (int i = 0; i < FD_SETSIZE; i++) {
         if (p->clientfd[i] != -1){
     		connection_flag = 1;
@@ -185,7 +192,7 @@ typedef struct {
     }
     ```
 
-    ​
+    
 
 
 

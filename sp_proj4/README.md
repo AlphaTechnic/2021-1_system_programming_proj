@@ -1,3 +1,10 @@
+    HOW TO EXECUTE
+    1. Enter the 'make' command to compile.
+       Then, the 'myshell.out' executable file is created.
+    2. Enter the './myshell.out' command to run the 'myshell.out' file.
+    3. If you want to delete the object file and the executable file,
+       run the 'make clean' command.
+
 # 1. 개발 목표
 
 linux의 shell과 동일하게 동작하는 customized 된 myshell을 구현한다. myshell 개발을 통해 시스템 레벨에서의 process control, process signalling, interprocess communication 그리고 background job에 대해 이해한다.
